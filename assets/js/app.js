@@ -601,20 +601,63 @@ function closeQuizPlayer() {
 async function exportWorkspaceToPDF(){
   const { jsPDF } = window.jspdf || {};
   if(!jsPDF){ alert("jsPDF não carregou. Verifique a conexão."); return; }
-  const node = qs(".canvas");
+
+  // Create a temporary, off-screen container for the PDF content
+  const printContainer = $.el("div");
+  Object.assign(printContainer.style, {
+    position: "absolute",
+    left: "-9999px",
+    top: "auto",
+    width: "800px",
+    padding: "20px",
+    background: "white",
+    color: "black",
+    fontFamily: `Inter, system-ui, sans-serif`
+  });
+
+  // Build the custom document header
+  const subject = qs("#compSel").value;
+  const allSkills = Object.values(appState.workspace).flat();
+  const uniqueSkillCodes = [...new Set(allSkills.map(item => item.codigo))].filter(code => code !== 'ATV');
+
+  const headerHTML = `
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h2 style="margin: 0;">ESCOLA MUNICIPAL SIMONE DOS SANTOS - TAUBATÉ</h2>
+      <p style="margin: 0;">Professora: MAELLY</p>
+    </div>
+    <div style="margin-bottom: 20px;">
+      <p><strong>Componente Curricular:</strong> ${esc(subject)}</p>
+      <p><strong>Habilidades da BNCC:</strong> ${uniqueSkillCodes.length > 0 ? esc(uniqueSkillCodes.join(', ')) : 'Nenhuma'}</p>
+    </div>
+    <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
+  `;
+
+  // Clone the workspace content
+  const workspaceContent = qs(".canvas").cloneNode(true);
+  // Remove unwanted elements from the clone, like stats and preferences
+  workspaceContent.querySelector('.grid.grid-2')?.remove();
+
+  printContainer.innerHTML = headerHTML;
+  printContainer.appendChild(workspaceContent);
+
+  document.body.appendChild(printContainer);
+
   window.scrollTo(0,0);
-  const canvas = await html2canvas(node, {scale:2, useCORS:true});
+  const canvas = await html2canvas(printContainer, {scale:2, useCORS:true});
+
+  // Clean up the temporary element
+  document.body.removeChild(printContainer);
+
   const img = canvas.toDataURL("image/png");
   const pdf = new jsPDF("p","mm","a4");
   const pageW = 210, pageH = 297;
   const margin = 8;
   const imgW = pageW - margin*2;
   const imgH = canvas.height * imgW / canvas.width;
-  let y = margin;
+
   if(imgH <= pageH - margin*2){
-    pdf.addImage(img, "PNG", margin, y, imgW, imgH);
-  }else{
-    // slice vertical em páginas
+    pdf.addImage(img, "PNG", margin, margin, imgW, imgH);
+  } else {
     let sY = 0;
     const pagePxH = (pageH - margin*2) * canvas.width / imgW;
     while(sY < canvas.height){
@@ -623,13 +666,12 @@ async function exportWorkspaceToPDF(){
       slice.height = Math.min(pagePxH, canvas.height - sY);
       const ctx = slice.getContext("2d");
       ctx.drawImage(canvas, 0, sY, canvas.width, slice.height, 0, 0, slice.width, slice.height);
-      const part = slice.toDataURL("image/png");
-      pdf.addImage(part, "PNG", margin, margin, imgW, (slice.height * imgW)/slice.width);
+      pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, imgW, (slice.height * imgW)/slice.width);
       sY += pagePxH;
       if(sY < canvas.height) pdf.addPage();
     }
   }
-  pdf.save(`plano-bncc-${Date.now()}.pdf`);
+  pdf.save(`plano-de-aula-${Date.now()}.pdf`);
 }
 
 function exportStateJSON(){

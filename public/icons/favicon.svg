@@ -1,0 +1,5 @@
+<!-- /public/icons/favicon.svg -->
+<svg viewBox="0 0 64 64" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="4" width="56" height="56" rx="12" fill="#2D6AE3"/>
+  <path d="M18 46V18l8 10 8-10v28" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,17 @@
+<!-- /public/brand/logo.svg -->
+<svg width="256" height="64" viewBox="0 0 256 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#2D6AE3" offset="0"/>
+      <stop stop-color="#7C3AED" offset="1"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#g)"/>
+    <!-- Monograma "ML" minimalista -->
+    <path d="M18 42V22l6 8 6-8v20" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="72" y="42" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="#0B1220">
+      MestreLúdico
+    </text>
+  </g>
+</svg>

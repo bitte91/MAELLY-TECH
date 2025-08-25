@@ -1,0 +1,12 @@
+{
+  "name": "mestre-ludico-pwa",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:icons": "node scripts/build-icons.js"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5",
+    "to-ico": "^1.1.5"
+  }
+}

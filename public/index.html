@@ -3,11 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1e3a8a">
-  <link rel="manifest" href="manifest.webmanifest">
-  <title>BNCC Avançado</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Libs CDN (cacheadas via Service Worker) -->
+  <title>MestreLúdico — Suporte ao Professor</title>
+  <meta name="description" content="PWA rápido e acessível para preparar e conduzir aulas.">
+
+  <!-- PWA & SEO -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#2D6AE3">
+  <link rel="icon" href="/icons/favicon.ico" sizes="any">
+  <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2D6AE3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Styles & Libs -->
+  <link rel="stylesheet" href="/assets/css/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -16,11 +26,7 @@
   <div class="container">
     <header class="header" aria-label="Cabeçalho do aplicativo">
       <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div>
-          <h1>BNCC Avançado <span class="badge">v2.3</span></h1>
-          <div class="badge">Offline • Exportação real • Persistência</div>
-        </div>
+        <img src="/brand/logo.svg" alt="MestreLúdico Logo" style="height: 40px;">
       </div>
       <div class="toolbar" role="toolbar" aria-label="Ferramentas rápidas">
         <button class="btn btn--ghost focus-ring" id="toggleTeaBtn" aria-pressed="false" title="Alternar Modo TEA">🧩 Modo TEA</button>
@@ -130,9 +136,7 @@
       <div class="card">
         <h3 class="section-title">Gerador de Histórias</h3>
         <div class="chat-container">
-          <div class="chat-messages" id="chatMessages">
-            <!-- As mensagens do chat aparecerão aqui -->
-          </div>
+          <div class="chat-messages" id="chatMessages"></div>
           <div class="chat-input-area">
             <input type="text" id="chatInput" class="input focus-ring" placeholder="Digite sua resposta...">
             <button id="chatSendBtn" class="btn">Enviar</button>
@@ -147,23 +151,16 @@
         <div id="quiz-editor">
           <label for="quizTitle" style="display: block; margin-bottom: 8px;">Título do Quiz</label>
           <input type="text" id="quizTitle" class="input focus-ring" placeholder="Ex: Capitais do Brasil" style="width: 100%;">
-
           <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Perguntas</h4>
-          <div id="questions-container">
-            <!-- As perguntas do quiz serão adicionadas dinamicamente aqui -->
-          </div>
-
+          <div id="questions-container"></div>
           <button id="addQuestionBtn" class="btn btn--ghost" style="margin-top: 1rem;">+ Adicionar Pergunta</button>
           <hr class="sep">
           <button id="saveQuizBtn" class="btn">Salvar Quiz</button>
         </div>
       </div>
-
       <div class="card" style="margin-top: 1rem;">
         <h3 class="section-title">Meus Quizzes Salvos</h3>
-        <div id="quiz-list">
-          <!-- A lista de quizzes salvos aparecerá aqui -->
-        </div>
+        <div id="quiz-list"></div>
       </div>
     </section>
 
@@ -182,7 +179,7 @@
       </div>
     </dialog>
 
-    <footer class="footer">Feito com ☕ e criticidade pedagógica. Funciona offline. Código pronto para GitHub Pages ou Vercel.</footer>
+    <footer class="footer">Feito com ☕ e criticidade pedagógica.</footer>
   </div>
 
   <div id="quizPlayerModal" class="modal">
@@ -205,10 +202,10 @@
     </div>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="/assets/js/app.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js').catch(console.warn);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js");
     }
   </script>
 </body>

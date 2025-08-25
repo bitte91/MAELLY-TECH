@@ -208,5 +208,21 @@
       navigator.serviceWorker.register("/service-worker.js");
     }
   </script>
+
+  <div id="aiSuggestionModal" class="modal">
+    <div class="dialog" style="max-width: 650px;">
+      <h3 class="section-title">Sugestões de Atividades com IA</h3>
+      <div id="aiSuggestionContent">
+        <p><strong>Habilidade da BNCC:</strong> <span id="aiSkillDescription"></span></p>
+        <hr class="sep">
+        <div id="aiSuggestionsList">
+          <p>Carregando sugestões...</p>
+        </div>
+      </div>
+      <div style="text-align: right; margin-top: 1.5rem;">
+        <button id="aiCloseBtn" class="btn btn--ghost">Fechar</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

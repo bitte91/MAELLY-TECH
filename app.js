@@ -14,7 +14,14 @@ let appState = {
   userProfile: { teacher: "Professora", school: "" },
   stats: { skills: 0, items: 0 },
   workspace: { objectives: [], activities: [], games: [], assessments: [] },
-  myActivities: []
+  myActivities: [],
+  chatbot: {
+    messages: [],
+    answers: {},
+    step: 0,
+    active: false,
+    complete: false
+  }
 };
 
 function saveState(){
@@ -32,6 +39,7 @@ function loadState(){
         appState.workspace[k] ||= [];
       }
       appState.myActivities ||= [];
+      appState.chatbot ||= { messages: [], answers: {}, step: 0, active: false, complete: false };
     }
   }catch(e){ console.warn("loadState", e); }
 }
@@ -182,13 +190,6 @@ function droppedItemNode(section, item){
   return node;
 }
 
-function syncWorkspaceDOM(){
-  ["objectives","activities","games","assessments"].forEach(section=>{
-    const list = zoneNode(section);
-    list.innerHTML = "";
-    appState.workspace[section].forEach(it=> list.appendChild(droppedItemNode(section, it)));
-  });
-}
 
 function enableDnD(){
   // Zonas aceitam drop de cards da biblioteca
@@ -235,8 +236,7 @@ function enableSortable(){
   });
 }
 
-// Patch para incluir data-id
-function syncWorkspaceDOM_withIds(){
+function syncWorkspaceDOM(){
   ["objectives","activities","games","assessments"].forEach(section=>{
     const list = zoneNode(section);
     list.innerHTML = "";
@@ -275,6 +275,99 @@ function renderMyActivities(){
     card.append(h,p,actions);
     wrap.appendChild(card);
   });
+}
+
+// ---------- Chatbot ----------
+const STORY_PROMPT = [
+  { key: "hero", q: "Olá! Vamos criar uma história juntos. Qual é o nome do nosso herói ou heroína?" },
+  { key: "place", q: "Legal! Onde a aventura de {hero} acontece?" },
+  { key: "friend", q: "Todo herói precisa de um amigo. Quem acompanha {hero} nesta jornada?" },
+  { key: "challenge", q: "Qual é o maior desafio que {hero} e {friend} encontram?" },
+  { key: "solution", q: "E como eles, com muita criatividade, superam o desafio '{challenge}'?" },
+];
+
+function renderChatMessages() {
+  const container = qs("#chatMessages");
+  container.innerHTML = "";
+  appState.chatbot.messages.forEach(msg => {
+    const msgEl = $.el("div", { className: `chat-message ${msg.sender}` });
+    msgEl.textContent = msg.text;
+    container.appendChild(msgEl);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+function addChatMessage(sender, text) {
+  appState.chatbot.messages.push({ sender, text });
+  renderChatMessages();
+}
+
+function generateFinalStory() {
+  const { answers } = appState.chatbot;
+  return `Era uma vez, um(a) herói(na) chamado(a) ${answers.hero}, que vivia em ${answers.place}. Um dia, ${answers.hero} e seu fiel amigo ${answers.friend} se depararam com um grande desafio: ${answers.challenge}. Com coragem e inteligência, eles encontraram uma solução: ${answers.solution}. E assim, eles salvaram o dia!`;
+}
+
+function askNextQuestion() {
+  const { step, answers } = appState.chatbot;
+  if (step < STORY_PROMPT.length) {
+    const nextQ = STORY_PROMPT[step];
+    let questionText = nextQ.q;
+    // Replace placeholders
+    for(const key in answers) {
+      questionText = questionText.replace(`{${key}}`, answers[key]);
+    }
+    addChatMessage("bot", questionText);
+    appState.chatbot.step++;
+  } else {
+    // Story is complete
+    appState.chatbot.complete = true;
+    const finalStory = generateFinalStory();
+    addChatMessage("bot", "Ótimo! Aqui está a sua história:");
+    addChatMessage("bot", finalStory);
+
+    const actions = $.el("div", { style: "display: flex; gap: 10px; margin-top: 10px;" });
+    const copyBtn = $.el("button", { className: "btn btn--sm" });
+    copyBtn.textContent = "Copiar História";
+    $.on(copyBtn, "click", () => {
+      navigator.clipboard.writeText(finalStory)
+        .then(() => alert("História copiada!"))
+        .catch(err => console.warn("Falha ao copiar", err));
+    });
+
+    const resetBtn = $.el("button", { className: "btn btn--sm btn--ghost" });
+    resetBtn.textContent = "Começar de Novo";
+    $.on(resetBtn, "click", startChat);
+
+    actions.append(copyBtn, resetBtn);
+    qs("#chatMessages").appendChild(actions);
+  }
+  saveState();
+}
+
+function startChat() {
+  appState.chatbot = {
+    messages: [],
+    answers: {},
+    step: 0,
+    active: true,
+    complete: false
+  };
+  askNextQuestion();
+}
+
+function handleChatMessage() {
+  const input = qs("#chatInput");
+  const text = input.value.trim();
+  if (!text || appState.chatbot.complete) return;
+
+  addChatMessage("user", text);
+
+  const currentStep = appState.chatbot.step - 1;
+  const currentQ = STORY_PROMPT[currentStep];
+  appState.chatbot.answers[currentQ.key] = text;
+
+  input.value = "";
+  setTimeout(askNextQuestion, 500);
 }
 
 // ---------- Exportações ----------
@@ -323,7 +416,7 @@ function exportStateJSON(){
 
 // ---------- UI & Eventos ----------
 function selectTab(id){
-  ["tab-library","tab-workspace","tab-my"].forEach(sec=>{
+  ["tab-library","tab-workspace","tab-my", "tab-chatbot"].forEach(sec=>{
     const on = sec===id;
     qs("#"+sec).hidden = !on;
     const btn = qs(`#${sec}-btn`);
@@ -358,6 +451,10 @@ function attachEvents(){
   $.on(qs("#tab-library-btn"), "click", ()=> selectTab("tab-library"));
   $.on(qs("#tab-workspace-btn"), "click", ()=> selectTab("tab-workspace"));
   $.on(qs("#tab-my-btn"), "click", ()=> selectTab("tab-my"));
+  $.on(qs("#tab-chatbot-btn"), "click", ()=> {
+    selectTab("tab-chatbot");
+    if(!appState.chatbot.active) startChat();
+  });
 
   // Export modal
   const modal = qs("#exportModal");
@@ -380,20 +477,30 @@ function attachEvents(){
       try{
         const obj = JSON.parse(reader.result);
         appState = Object.assign({}, appState, obj);
-        syncWorkspaceDOM_withIds(); renderMyActivities(); updateStats(); saveState();
+        syncWorkspaceDOM(); renderMyActivities(); updateStats(); saveState();
         alert("Estado importado com sucesso.");
       }catch(err){ alert("JSON inválido."); }
     };
     reader.readAsText(file);
   });
 
+  // Chatbot events
+  $.on(qs("#chatSendBtn"), "click", handleChatMessage);
+  $.on(qs("#chatInput"), "keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleChatMessage();
+    }
+  });
+
   // Add custom activity
   $.on(qs("#addCustom"), "click", ()=>{
     const title = qs("#customTitle").value.trim();
     const tags = qs("#customTags").value.trim();
+    const description = qs("#customDescription").value.trim();
     if(!title){ alert("Dê um título."); return; }
-    appState.myActivities.push({ title, tags, description: "" });
-    qs("#customTitle").value = ""; qs("#customTags").value = "";
+    appState.myActivities.push({ title, tags, description });
+    qs("#customTitle").value = ""; qs("#customTags").value = ""; qs("#customDescription").value = "";
     renderMyActivities(); saveState();
   });
 
@@ -414,14 +521,27 @@ function attachEvents(){
   });
 }
 
+function handleRouting(){
+  const hash = window.location.hash.substring(1);
+  if (['tab-library', 'tab-workspace', 'tab-my'].includes(hash)) {
+    selectTab(hash);
+  }
+}
+
 // ---------- Init ----------
 (async function init(){
   await loadBNCC();
   attachEvents();
   enableDnD();
   renderLibrary();
-  syncWorkspaceDOM_withIds();
+  syncWorkspaceDOM();
   enableSortable();
   renderMyActivities();
   updateStats();
+
+  window.addEventListener('hashchange', handleRouting, false);
+  handleRouting();
+
+  // Render initial chat messages if any
+  renderChatMessages();
 })();

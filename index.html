@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>BNCC Avançado</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Libs CDN (cacheadas via Service Worker) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header" aria-label="Cabeçalho do aplicativo">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>BNCC Avançado <span class="badge">v2.3</span></h1>
+          <div class="badge">Offline • Exportação real • Persistência</div>
+        </div>
+      </div>
+      <div class="toolbar" role="toolbar" aria-label="Ferramentas rápidas">
+        <button class="btn btn--ghost focus-ring" id="toggleTeaBtn" aria-pressed="false" title="Alternar Modo TEA">🧩 Modo TEA</button>
+        <button class="btn focus-ring" id="openExport">⬇️ Exportar</button>
+        <button class="btn btn--ghost focus-ring" id="exportJSON">💾 Exportar JSON</button>
+        <label class="btn btn--ghost focus-ring" title="Importar JSON">
+          📥 Importar JSON
+          <input type="file" id="importJSON" accept="application/json" class="sr-only">
+        </label>
+      </div>
+    </header>
+
+    <nav class="tablist" role="tablist" aria-label="Seções principais">
+      <button class="tab focus-ring" role="tab" aria-selected="true" aria-controls="tab-library" id="tab-library-btn">Biblioteca BNCC</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-workspace" id="tab-workspace-btn">Workspace</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-my" id="tab-my-btn">Minhas Atividades</button>
+    </nav>
+
+    <section id="tab-library" role="tabpanel" aria-labelledby="tab-library-btn">
+      <div class="card">
+        <h3 class="section-title">Filtrar habilidades</h3>
+        <div class="grid grid-3">
+          <div>
+            <label for="anoSel">Ano/Série</label>
+            <select id="anoSel" class="select focus-ring">
+              <option>2º ano</option>
+              <option>5º ano</option>
+            </select>
+          </div>
+          <div>
+            <label for="compSel">Componente</label>
+            <select id="compSel" class="select focus-ring">
+              <option>Língua Portuguesa</option>
+              <option>Matemática</option>
+            </select>
+          </div>
+          <div>
+            <label for="busca">Busca</label>
+            <input id="busca" class="input focus-ring" placeholder="código, tema ou palavra-chave">
+          </div>
+        </div>
+      </div>
+
+      <div class="library" id="libraryList" aria-live="polite" aria-busy="false"></div>
+      <p class="footer">Dica: arraste cards para o <strong>Workspace</strong>, ou use os botões “Adicionar”. Atalhos: <span class="kbd">/</span> focar busca, <span class="kbd">g</span> Workspace.</p>
+    </section>
+
+    <section id="tab-workspace" role="tabpanel" aria-labelledby="tab-workspace-btn" hidden>
+      <div class="card canvas">
+        <h3 class="section-title">Plano de Aula — Workspace</h3>
+        <div class="dropzones" aria-label="Zonas de construção do plano">
+          <div class="dropzone" id="objectives-zone" data-section="objectives">
+            <h4>🎯 Objetivos</h4>
+            <div class="zone-list"></div>
+          </div>
+          <div class="dropzone" id="activities-zone" data-section="activities">
+            <h4>🛠️ Atividades</h4>
+            <div class="zone-list"></div>
+          </div>
+          <div class="dropzone" id="games-zone" data-section="games">
+            <h4>🎲 Jogos</h4>
+            <div class="zone-list"></div>
+          </div>
+          <div class="dropzone" id="assessments-zone" data-section="assessments">
+            <h4>📊 Avaliações</h4>
+            <div class="zone-list"></div>
+          </div>
+        </div>
+        <hr class="sep">
+        <div class="grid grid-2">
+          <div class="card">
+            <h4 class="section-title">Preferências do Plano</h4>
+            <div class="grid">
+              <label>Tema da Aula <input id="prefTheme" class="input focus-ring" placeholder="ex.: Frações no cotidiano"></label>
+              <label>Turma <input id="prefClass" class="input focus-ring" placeholder="ex.: 5º ano A"></label>
+              <label>Duração <input id="prefTime" class="input focus-ring" placeholder="ex.: 50 minutos"></label>
+            </div>
+          </div>
+          <div class="card">
+            <h4 class="section-title">Estatísticas</h4>
+            <p>Habilidades selecionadas: <strong id="statSkills">0</strong></p>
+            <p>Itens no plano: <strong id="statItems">0</strong></p>
+            <p>Modo TEA: <strong id="statTea">desligado</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-my" role="tabpanel" aria-labelledby="tab-my-btn" hidden>
+      <div class="card">
+        <h3 class="section-title">Minhas Atividades</h3>
+        <div class="grid grid-3">
+          <input id="customTitle" class="input focus-ring" placeholder="Título">
+          <input id="customTags" class="input focus-ring" placeholder="Tags (opcional)">
+          <button id="addCustom" class="btn">+ Adicionar</button>
+        </div>
+      </div>
+      <div class="card" id="myActivitiesList"></div>
+    </section>
+
+    <dialog class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+      <div class="dialog">
+        <h3 id="exportTitle" class="section-title">Exportar</h3>
+        <p>Escolha o formato:</p>
+        <div class="grid grid-3">
+          <button class="btn" data-export="pdf">📄 PDF (Workspace)</button>
+          <button class="btn btn--ghost" data-export="json">🧰 JSON (estado completo)</button>
+        </div>
+        <p class="footer">O PDF captura a área do Workspace. Para melhor qualidade, expanda os itens antes de exportar.</p>
+        <div style="text-align:right;margin-top:10px">
+          <button class="btn btn--ghost" id="closeExport">Fechar</button>
+        </div>
+      </div>
+    </dialog>
+
+    <footer class="footer">Feito com ☕ e criticidade pedagógica. Funciona offline. Código pronto para GitHub Pages ou Vercel.</footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js').catch(console.warn);
+    }
+  </script>
+</body>
+</html>

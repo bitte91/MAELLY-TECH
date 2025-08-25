@@ -1,0 +1,118 @@
+{
+  "2º ano": {
+    "Língua Portuguesa": [
+      {
+        "codigo": "EF02LP01",
+        "tema": "Leitura",
+        "descricao": "Identificar o assunto de textos informativos curtos.",
+        "tags": [
+          "leitura",
+          "compreensão"
+        ]
+      },
+      {
+        "codigo": "EF02LP02",
+        "tema": "Produção de texto",
+        "descricao": "Produzir bilhetes simples com finalidade comunicativa.",
+        "tags": [
+          "escrita",
+          "gêneros"
+        ]
+      },
+      {
+        "codigo": "EF02LP03",
+        "tema": "Oralidade",
+        "descricao": "Relatar experiências pessoais com sequência temporal.",
+        "tags": [
+          "oralidade"
+        ]
+      }
+    ],
+    "Matemática": [
+      {
+        "codigo": "EF02MA01",
+        "tema": "Números",
+        "descricao": "Ler, escrever e ordenar números naturais até 1000.",
+        "tags": [
+          "números",
+          "ordenação"
+        ]
+      },
+      {
+        "codigo": "EF02MA05",
+        "tema": "Operações",
+        "descricao": "Resolver e criar problemas de adição e subtração.",
+        "tags": [
+          "problemas",
+          "adição",
+          "subtração"
+        ]
+      },
+      {
+        "codigo": "EF02MA12",
+        "tema": "Geometria",
+        "descricao": "Reconhecer figuras geométricas planas no cotidiano.",
+        "tags": [
+          "geometria"
+        ]
+      }
+    ]
+  },
+  "5º ano": {
+    "Língua Portuguesa": [
+      {
+        "codigo": "EF05LP01",
+        "tema": "Leitura",
+        "descricao": "Inferir informações implícitas em textos narrativos.",
+        "tags": [
+          "inferência",
+          "leitura"
+        ]
+      },
+      {
+        "codigo": "EF05LP06",
+        "tema": "Coesão",
+        "descricao": "Empregar conectivos para organizar ideias em textos.",
+        "tags": [
+          "coesão",
+          "escrita"
+        ]
+      },
+      {
+        "codigo": "EF05LP20",
+        "tema": "Gramática",
+        "descricao": "Reconhecer classes de palavras em textos diversos.",
+        "tags": [
+          "gramática"
+        ]
+      }
+    ],
+    "Matemática": [
+      {
+        "codigo": "EF05MA03",
+        "tema": "Multiplicação",
+        "descricao": "Resolver problemas com multiplicação e divisão.",
+        "tags": [
+          "operações"
+        ]
+      },
+      {
+        "codigo": "EF05MA07",
+        "tema": "Frações",
+        "descricao": "Representar frações e compará-las em diferentes contextos.",
+        "tags": [
+          "frações"
+        ]
+      },
+      {
+        "codigo": "EF05MA24",
+        "tema": "Dados",
+        "descricao": "Ler e interpretar tabelas e gráficos de colunas.",
+        "tags": [
+          "dados",
+          "gráficos"
+        ]
+      }
+    ]
+  }
+}

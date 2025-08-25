@@ -130,6 +130,11 @@ function makeSkillCard(skill){
       actions.appendChild(b);
     });
 
+  const aiBtn = $.el("button", { className: "btn btn--sm btn--ghost" });
+  aiBtn.innerHTML = `✨ Sugerir Atividades`;
+  $.on(aiBtn, "click", () => handleAiSuggestion(skill));
+  actions.appendChild(aiBtn);
+
   card.append(h,p,meta,actions);
   return card;
 }
@@ -597,6 +602,61 @@ function closeQuizPlayer() {
   playerState = null;
 }
 
+// ---------- AI Assistant ----------
+function renderAiSuggestions(suggestions) {
+  const container = qs("#aiSuggestionsList");
+  container.innerHTML = "";
+  if (!suggestions || suggestions.length === 0) {
+    container.innerHTML = `<p>Não foi possível gerar sugestões no momento. Tente novamente.</p>`;
+    return;
+  }
+
+  const list = $.el("ul", { style: "padding-left: 20px;" });
+  suggestions.forEach(sug => {
+    const item = $.el("li", { style: "margin-bottom: 1rem;" });
+    const title = $.el("strong");
+    title.textContent = sug.title;
+    const desc = $.el("p", { style: "margin: 0;" });
+    desc.textContent = sug.description;
+    item.append(title, desc);
+    list.appendChild(item);
+  });
+  container.appendChild(list);
+}
+
+async function handleAiSuggestion(skill) {
+  const modal = qs("#aiSuggestionModal");
+  const descEl = qs("#aiSkillDescription");
+  const listEl = qs("#aiSuggestionsList");
+
+  descEl.textContent = skill.descricao;
+  listEl.innerHTML = `<p>Carregando sugestões... 🧠</p>`;
+  modal.setAttribute("open", "");
+
+  try {
+    const response = await fetch("/api/suggest-activities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skillDescription: skill.descricao }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderAiSuggestions(data.suggestions);
+
+  } catch (error) {
+    console.error("Failed to get AI suggestions:", error);
+    listEl.innerHTML = `<p style="color: var(--danger);">Ocorreu um erro ao buscar as sugestões. Tente novamente mais tarde.</p>`;
+  }
+}
+
+function closeAiModal() {
+  qs("#aiSuggestionModal").removeAttribute("open");
+}
+
 // ---------- Exportações ----------
 async function exportWorkspaceToPDF(){
   const { jsPDF } = window.jspdf || {};
@@ -778,6 +838,9 @@ function attachEvents(){
   // Quiz Player events
   $.on(qs("#playerNextBtn"), "click", nextQuestion);
   $.on(qs("#playerCloseBtn"), "click", closeQuizPlayer);
+
+  // AI Assistant events
+  $.on(qs("#aiCloseBtn"), "click", closeAiModal);
 
   // Add custom activity
   $.on(qs("#addCustom"), "click", ()=>{

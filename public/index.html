@@ -18,6 +18,7 @@
 
   <!-- Styles & Libs -->
   <link rel="stylesheet" href="/assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -170,7 +171,8 @@
         <p>Escolha o formato:</p>
         <div class="grid grid-3">
           <button class="btn" data-export="pdf">📄 PDF (Workspace)</button>
-          <button class="btn btn--ghost" data-export="json">🧰 JSON (estado completo)</button>
+          <button class="btn btn--ghost" data-export="csv">📊 CSV (Planilha)</button>
+          <button class="btn btn--ghost" data-export="json">🧰 JSON (Completo)</button>
         </div>
         <p class="footer">O PDF captura a área do Workspace. Para melhor qualidade, expanda os itens antes de exportar.</p>
         <div style="text-align:right;margin-top:10px">
@@ -208,6 +210,21 @@
       navigator.serviceWorker.register("/service-worker.js");
     }
   </script>
+
+  <div id="skillDetailModal" class="modal">
+    <div class="dialog">
+      <h3 id="skillDetailTitle" class="section-title"></h3>
+      <p id="skillDetailDescription"></p>
+      <hr class="sep">
+      <h4>Ações para esta Habilidade:</h4>
+      <div id="skillDetailActions" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+        <!-- Action buttons will be injected by JS -->
+      </div>
+      <div style="text-align: right; margin-top: 1.5rem;">
+        <button id="skillDetailCloseBtn" class="btn btn--ghost">Fechar</button>
+      </div>
+    </div>
+  </div>
 
   <div id="aiSuggestionModal" class="modal">
     <div class="dialog" style="max-width: 650px;">

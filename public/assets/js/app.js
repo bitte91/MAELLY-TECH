@@ -121,21 +121,9 @@ function makeSkillCard(skill){
     meta.appendChild(chip);
   });
 
-  const actions = $.el("div", {style:"display:flex;gap:6px;flex-wrap:wrap"});
-  [["🎯 Objetivo","objectives"],["🛠️ Atividade","activities"],["🎲 Jogo","games"],["📊 Avaliação","assessments"]]
-    .forEach(([label,sect])=>{
-      const b = $.el("button",{className:"btn btn--sm"});
-      b.textContent = `+ ${label}`;
-      b.addEventListener("click",()=> addSkillToSection(skill, sect));
-      actions.appendChild(b);
-    });
+  card.addEventListener("click", () => openSkillDetailModal(skill));
 
-  const aiBtn = $.el("button", { className: "btn btn--sm btn--ghost" });
-  aiBtn.innerHTML = `✨ Sugerir Atividades`;
-  $.on(aiBtn, "click", () => handleAiSuggestion(skill));
-  actions.appendChild(aiBtn);
-
-  card.append(h,p,meta,actions);
+  card.append(h,p,meta);
   return card;
 }
 
@@ -159,7 +147,8 @@ function addSkillToSection(skill, section){
     codigo: skill.codigo,
     titulo: `${skill.codigo} — ${skill.tema}`,
     descricao: skill.descricao,
-    tea: appState.teaModeActive ? makeTeaTip(skill) : null
+    tea: appState.teaModeActive ? makeTeaTip(skill) : null,
+    media: [] // Prepare for future media integration
   };
   appState.workspace[section].push(item);
   syncWorkspaceDOM();
@@ -447,7 +436,8 @@ function addQuestion() {
   appState.currentQuiz.questions.push({
     text: "",
     answers: ["", "", "", ""],
-    correctAnswerIndex: 0
+    correctAnswerIndex: 0,
+    media: [] // Prepare for future media integration
   });
   renderQuizEditor();
 }
@@ -602,6 +592,48 @@ function closeQuizPlayer() {
   playerState = null;
 }
 
+// ---------- Skill Detail Modal ----------
+function openSkillDetailModal(skill) {
+  qs("#skillDetailTitle").textContent = `${skill.codigo} — ${skill.tema}`;
+  qs("#skillDetailDescription").textContent = skill.descricao;
+
+  const actionsContainer = qs("#skillDetailActions");
+  actionsContainer.innerHTML = ""; // Clear previous actions
+
+  // Add to workspace buttons
+  const workspaceActions = [
+    ["🎯 Adicionar como Objetivo", "objectives"],
+    ["🛠️ Adicionar como Atividade", "activities"],
+    ["🎲 Adicionar como Jogo", "games"],
+    ["📊 Adicionar como Avaliação", "assessments"]
+  ];
+  workspaceActions.forEach(([label, sect]) => {
+    const btn = $.el("button", { className: "btn btn--sm" });
+    btn.textContent = label;
+    $.on(btn, "click", () => {
+      addSkillToSection(skill, sect);
+      closeSkillDetailModal();
+      // Optional: show a success toast
+    });
+    actionsContainer.appendChild(btn);
+  });
+
+  // AI Suggestion button
+  const aiBtn = $.el("button", { className: "btn btn--sm btn--ghost" });
+  aiBtn.innerHTML = `✨ Sugerir Atividades com IA`;
+  $.on(aiBtn, "click", () => {
+    closeSkillDetailModal(); // Close this modal before opening the other
+    handleAiSuggestion(skill);
+  });
+  actionsContainer.appendChild(aiBtn);
+
+  qs("#skillDetailModal").setAttribute("open", "");
+}
+
+function closeSkillDetailModal() {
+  qs("#skillDetailModal").removeAttribute("open");
+}
+
 // ---------- AI Assistant ----------
 function renderAiSuggestions(suggestions) {
   const container = qs("#aiSuggestionsList");
@@ -734,6 +766,29 @@ async function exportWorkspaceToPDF(){
   pdf.save(`plano-de-aula-${Date.now()}.pdf`);
 }
 
+function exportToCSV() {
+  let csvContent = "data:text/csv;charset=utf-8,Tipo,Codigo,Titulo,Descricao\r\n";
+  const { workspace } = appState;
+
+  for (const section in workspace) {
+    workspace[section].forEach(item => {
+      const row = [
+        section,
+        item.codigo,
+        `"${item.titulo.replace(/"/g, '""')}"`,
+        `"${item.descricao.replace(/"/g, '""')}"`
+      ].join(",");
+      csvContent += row + "\r\n";
+    });
+  }
+
+  const encodedUri = encodeURI(csvContent);
+  const link = $.el("a", { href: encodedUri, download: "plano_de_aula.csv" });
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 function exportStateJSON(){
   const data = JSON.stringify(appState, null, 2);
   const blob = new Blob([data], {type:"application/json"});
@@ -765,10 +820,15 @@ function updateStats(){
   qs("#statTea").textContent = appState.teaModeActive ? "ligado" : "desligado";
 }
 
+function handleFilterChange() {
+  renderLibrary();
+  qs("#busca").focus();
+}
+
 function attachEvents(){
   $.on(qs("#busca"), "input", renderLibrary);
-  $.on(qs("#anoSel"), "change", renderLibrary);
-  $.on(qs("#compSel"), "change", renderLibrary);
+  $.on(qs("#anoSel"), "change", handleFilterChange);
+  $.on(qs("#compSel"), "change", handleFilterChange);
 
   $.on(qs("#toggleTeaBtn"), "click", ()=>{
     appState.teaModeActive = !appState.teaModeActive;
@@ -800,6 +860,7 @@ function attachEvents(){
       const type = btn.dataset.export;
       if(type==="pdf") await exportWorkspaceToPDF();
       if(type==="json") exportStateJSON();
+      if(type==="csv") exportToCSV();
     });
   });
   // Quick export buttons
@@ -842,13 +903,16 @@ function attachEvents(){
   // AI Assistant events
   $.on(qs("#aiCloseBtn"), "click", closeAiModal);
 
+  // Skill Detail Modal events
+  $.on(qs("#skillDetailCloseBtn"), "click", closeSkillDetailModal);
+
   // Add custom activity
   $.on(qs("#addCustom"), "click", ()=>{
     const title = qs("#customTitle").value.trim();
     const tags = qs("#customTags").value.trim();
     const description = qs("#customDescription").value.trim();
     if(!title){ alert("Dê um título."); return; }
-    appState.myActivities.push({ title, tags, description });
+    appState.myActivities.push({ title, tags, description, media: [] });
     qs("#customTitle").value = ""; qs("#customTags").value = ""; qs("#customDescription").value = "";
     renderMyActivities(); saveState();
   });
@@ -867,6 +931,32 @@ function attachEvents(){
       appState.userProfile[id] = el.value;
       saveState();
     });
+  });
+}
+
+function attachHotkeys() {
+  /* global hotkeys */
+  if (typeof hotkeys === 'undefined') {
+    console.warn("hotkeys-js not loaded.");
+    return;
+  }
+
+  // Tab navigation
+  hotkeys('alt+1, ⌘+1', (e) => { e.preventDefault(); selectTab('tab-library'); });
+  hotkeys('alt+2, ⌘+2', (e) => { e.preventDefault(); selectTab('tab-workspace'); });
+  hotkeys('alt+3, ⌘+3', (e) => { e.preventDefault(); selectTab('tab-my'); });
+  hotkeys('alt+4, ⌘+4', (e) => { e.preventDefault(); selectTab('tab-chatbot'); });
+  hotkeys('alt+5, ⌘+5', (e) => { e.preventDefault(); selectTab('tab-quiz'); });
+
+  // Actions
+  hotkeys('e', (e) => {
+    e.preventDefault();
+    const modal = qs("#exportModal");
+    if (modal.hasAttribute("open")) {
+      modal.removeAttribute("open");
+    } else {
+      modal.setAttribute("open", "");
+    }
   });
 }
 
@@ -897,4 +987,6 @@ function handleRouting(){
   renderQuizEditor();
   // Render the list of saved quizzes
   renderQuizzesList();
+  // Attach all keyboard shortcuts
+  attachHotkeys();
 })();

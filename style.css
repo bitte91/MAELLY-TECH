@@ -60,6 +60,33 @@ hr.sep{border:0;border-top:1px solid var(--ring);margin:16px 0}
   .dropzones{grid-template-columns:1fr}
 }
 
+/* Quiz Creator Styles */
+.question-block {
+  background-color: var(--card);
+  border: 1px solid var(--ring);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.answers-container {
+  display: grid;
+  gap: 10px;
+  margin-top: 0.75rem;
+}
+
+.answer-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.answer-input-group input[type="radio"] {
+  accent-color: var(--primary);
+  width: 1.2em;
+  height: 1.2em;
+}
+
 /* Chatbot Styles */
 .chat-container {
   display: flex;
@@ -112,4 +139,38 @@ hr.sep{border:0;border-top:1px solid var(--ring);margin:16px 0}
 #chatInput:focus {
   outline: none;
   box-shadow: none;
+}
+
+/* Quiz Player Styles */
+#playerAnswersContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.answer-btn {
+  width: 100%;
+  padding: 12px;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--ring);
+  color: var(--text);
+  justify-content: start;
+}
+
+.answer-btn.correct {
+  background-color: var(--accent);
+  border-color: #34d399;
+  color: #fff;
+}
+
+.answer-btn.incorrect {
+  background-color: var(--danger);
+  border-color: #f87171;
+  color: #fff;
+}
+
+.answer-btn[disabled] {
+  cursor: default;
+  opacity: 0.8;
 }

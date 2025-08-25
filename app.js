@@ -21,7 +21,9 @@ let appState = {
     step: 0,
     active: false,
     complete: false
-  }
+  },
+  quizzes: [],
+  currentQuiz: null
 };
 
 function saveState(){
@@ -40,6 +42,8 @@ function loadState(){
       }
       appState.myActivities ||= [];
       appState.chatbot ||= { messages: [], answers: {}, step: 0, active: false, complete: false };
+      appState.quizzes ||= [];
+      appState.currentQuiz ||= null;
     }
   }catch(e){ console.warn("loadState", e); }
 }
@@ -370,6 +374,229 @@ function handleChatMessage() {
   setTimeout(askNextQuestion, 500);
 }
 
+// ---------- Quiz Creator ----------
+
+function createQuestionElement(question, index) {
+  const questionBlock = $.el("div", { className: "question-block" });
+  questionBlock.dataset.index = index;
+
+  const questionInput = $.el("input", {
+    type: "text",
+    className: "input focus-ring",
+    placeholder: "Digite a pergunta...",
+    value: question.text
+  });
+  $.on(questionInput, "change", () => {
+    appState.currentQuiz.questions[index].text = questionInput.value;
+  });
+
+  const answersContainer = $.el("div", { className: "answers-container" });
+  question.answers.forEach((answer, answerIndex) => {
+    const group = $.el("div", { className: "answer-input-group" });
+    const radio = $.el("input", {
+      type: "radio",
+      name: `correct-answer-${index}`,
+      checked: question.correctAnswerIndex === answerIndex
+    });
+    $.on(radio, "change", () => {
+      appState.currentQuiz.questions[index].correctAnswerIndex = answerIndex;
+    });
+
+    const answerInput = $.el("input", {
+      type: "text",
+      className: "input focus-ring",
+      placeholder: `Resposta ${answerIndex + 1}`,
+      value: answer
+    });
+    $.on(answerInput, "change", () => {
+      appState.currentQuiz.questions[index].answers[answerIndex] = answerInput.value;
+    });
+
+    group.append(radio, answerInput);
+    answersContainer.appendChild(group);
+  });
+
+  const removeBtn = $.el("button", { className: "btn btn--danger btn--sm", style: "margin-top: 1rem;" });
+  removeBtn.textContent = "Remover Pergunta";
+  $.on(removeBtn, "click", () => {
+    appState.currentQuiz.questions.splice(index, 1);
+    renderQuizEditor();
+  });
+
+  questionBlock.append(questionInput, answersContainer, removeBtn);
+  return questionBlock;
+}
+
+function renderQuizEditor() {
+  if (!appState.currentQuiz) return;
+  qs("#quizTitle").value = appState.currentQuiz.title;
+  const container = qs("#questions-container");
+  container.innerHTML = "";
+  appState.currentQuiz.questions.forEach((q, i) => {
+    container.appendChild(createQuestionElement(q, i));
+  });
+}
+
+function addQuestion() {
+  if (!appState.currentQuiz) return;
+  appState.currentQuiz.questions.push({
+    text: "",
+    answers: ["", "", "", ""],
+    correctAnswerIndex: 0
+  });
+  renderQuizEditor();
+}
+
+function saveQuiz() {
+  const { currentQuiz } = appState;
+  if (!currentQuiz || !currentQuiz.title.trim()) {
+    alert("Por favor, dê um título ao quiz.");
+    return;
+  }
+  if (currentQuiz.questions.length === 0) {
+    alert("Adicione pelo menos uma pergunta.");
+    return;
+  }
+  // Basic validation
+  for (const q of currentQuiz.questions) {
+    if (!q.text.trim() || q.answers.some(a => !a.trim())) {
+      alert("Por favor, preencha todos os campos de todas as perguntas e respostas.");
+      return;
+    }
+  }
+
+  appState.quizzes.push(JSON.parse(JSON.stringify(currentQuiz)));
+  saveState();
+  renderQuizzesList();
+  alert("Quiz salvo com sucesso!");
+  startNewQuiz();
+}
+
+function renderQuizzesList() {
+  const container = qs("#quiz-list");
+  container.innerHTML = "";
+
+  if (appState.quizzes.length === 0) {
+    container.innerHTML = `<p>Nenhum quiz salvo ainda.</p>`;
+    return;
+  }
+
+  appState.quizzes.forEach(quiz => {
+    const item = $.el("div", { className: "dropped-item" }); // Reusing styles
+    const title = $.el("span");
+    title.textContent = quiz.title;
+
+    const actions = $.el("div", { className: "actions" });
+    const playBtn = $.el("button", { className: "btn btn--sm" });
+    playBtn.textContent = "▶️ Jogar";
+    $.on(playBtn, "click", () => launchQuiz(quiz.id));
+
+    const delBtn = $.el("button", { className: "btn btn--danger btn--sm" });
+    delBtn.textContent = "Excluir";
+    $.on(delBtn, "click", () => {
+      if (confirm(`Tem certeza que deseja excluir o quiz "${quiz.title}"?`)) {
+        appState.quizzes = appState.quizzes.filter(q => q.id !== quiz.id);
+        saveState();
+        renderQuizzesList();
+      }
+    });
+
+    actions.append(playBtn, delBtn);
+    item.append(title, actions);
+    container.appendChild(item);
+  });
+}
+
+function startNewQuiz() {
+  appState.currentQuiz = {
+    id: crypto.randomUUID(),
+    title: "",
+    questions: []
+  };
+  renderQuizEditor();
+}
+
+// ---------- Quiz Player ----------
+let playerState = null;
+
+function renderPlayerQuestion() {
+  const { quiz, currentQuestionIndex } = playerState;
+  const question = quiz.questions[currentQuestionIndex];
+
+  qs("#playerQuizTitle").textContent = quiz.title;
+  qs("#playerQuestionText").textContent = question.text;
+
+  const answersContainer = qs("#playerAnswersContainer");
+  answersContainer.innerHTML = "";
+
+  question.answers.forEach((answer, index) => {
+    const answerBtn = $.el("button", { className: "btn answer-btn" });
+    answerBtn.textContent = answer;
+    $.on(answerBtn, "click", () => handleAnswerClick(index));
+    answersContainer.appendChild(answerBtn);
+  });
+
+  qs("#playerNextBtn").hidden = true;
+}
+
+function handleAnswerClick(selectedIndex) {
+  const { quiz, currentQuestionIndex } = playerState;
+  const question = quiz.questions[currentQuestionIndex];
+  const correct = selectedIndex === question.correctAnswerIndex;
+
+  if (correct) {
+    playerState.score++;
+  }
+
+  const answerButtons = qsa("#playerAnswersContainer .answer-btn");
+  answerButtons.forEach((btn, index) => {
+    btn.disabled = true;
+    if (index === question.correctAnswerIndex) {
+      btn.classList.add("correct");
+    } else if (index === selectedIndex) {
+      btn.classList.add("incorrect");
+    }
+  });
+
+  qs("#playerNextBtn").hidden = false;
+}
+
+function nextQuestion() {
+  playerState.currentQuestionIndex++;
+  if (playerState.currentQuestionIndex < playerState.quiz.questions.length) {
+    renderPlayerQuestion();
+  } else {
+    showPlayerSummary();
+  }
+}
+
+function showPlayerSummary() {
+  qs("#playerContent").hidden = true;
+  qs("#playerSummaryContainer").hidden = false;
+  qs("#playerFinalScore").textContent = `${playerState.score} / ${playerState.quiz.questions.length}`;
+}
+
+function launchQuiz(quizId) {
+  const quizToPlay = appState.quizzes.find(q => q.id === quizId);
+  if (!quizToPlay) return;
+
+  playerState = {
+    quiz: quizToPlay,
+    currentQuestionIndex: 0,
+    score: 0
+  };
+
+  qs("#playerContent").hidden = false;
+  qs("#playerSummaryContainer").hidden = true;
+  qs("#quizPlayerModal").setAttribute("open", "");
+  renderPlayerQuestion();
+}
+
+function closeQuizPlayer() {
+  qs("#quizPlayerModal").removeAttribute("open");
+  playerState = null;
+}
+
 // ---------- Exportações ----------
 async function exportWorkspaceToPDF(){
   const { jsPDF } = window.jspdf || {};
@@ -416,7 +643,7 @@ function exportStateJSON(){
 
 // ---------- UI & Eventos ----------
 function selectTab(id){
-  ["tab-library","tab-workspace","tab-my", "tab-chatbot"].forEach(sec=>{
+  ["tab-library","tab-workspace","tab-my", "tab-chatbot", "tab-quiz"].forEach(sec=>{
     const on = sec===id;
     qs("#"+sec).hidden = !on;
     const btn = qs(`#${sec}-btn`);
@@ -455,6 +682,12 @@ function attachEvents(){
     selectTab("tab-chatbot");
     if(!appState.chatbot.active) startChat();
   });
+  $.on(qs("#tab-quiz-btn"), "click", () => {
+    selectTab("tab-quiz");
+    if (!appState.currentQuiz) {
+      startNewQuiz();
+    }
+  });
 
   // Export modal
   const modal = qs("#exportModal");
@@ -492,6 +725,17 @@ function attachEvents(){
       handleChatMessage();
     }
   });
+
+  // Quiz creator events
+  $.on(qs("#quizTitle"), "change", e => {
+    if (appState.currentQuiz) appState.currentQuiz.title = e.target.value;
+  });
+  $.on(qs("#addQuestionBtn"), "click", addQuestion);
+  $.on(qs("#saveQuizBtn"), "click", saveQuiz);
+
+  // Quiz Player events
+  $.on(qs("#playerNextBtn"), "click", nextQuestion);
+  $.on(qs("#playerCloseBtn"), "click", closeQuizPlayer);
 
   // Add custom activity
   $.on(qs("#addCustom"), "click", ()=>{
@@ -544,4 +788,8 @@ function handleRouting(){
 
   // Render initial chat messages if any
   renderChatMessages();
+  // Render quiz editor if a quiz is in progress
+  renderQuizEditor();
+  // Render the list of saved quizzes
+  renderQuizzesList();
 })();

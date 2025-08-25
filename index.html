@@ -38,6 +38,7 @@
       <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-workspace" id="tab-workspace-btn">Workspace</button>
       <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-my" id="tab-my-btn">Minhas Atividades</button>
       <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-chatbot" id="tab-chatbot-btn">Gerador de Histórias</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-quiz" id="tab-quiz-btn">Criador de Jogos</button>
     </nav>
 
     <section id="tab-library" role="tabpanel" aria-labelledby="tab-library-btn">
@@ -140,6 +141,32 @@
       </div>
     </section>
 
+    <section id="tab-quiz" role="tabpanel" aria-labelledby="tab-quiz-btn" hidden>
+      <div class="card">
+        <h3 class="section-title">Criador de Quizzes</h3>
+        <div id="quiz-editor">
+          <label for="quizTitle" style="display: block; margin-bottom: 8px;">Título do Quiz</label>
+          <input type="text" id="quizTitle" class="input focus-ring" placeholder="Ex: Capitais do Brasil" style="width: 100%;">
+
+          <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Perguntas</h4>
+          <div id="questions-container">
+            <!-- As perguntas do quiz serão adicionadas dinamicamente aqui -->
+          </div>
+
+          <button id="addQuestionBtn" class="btn btn--ghost" style="margin-top: 1rem;">+ Adicionar Pergunta</button>
+          <hr class="sep">
+          <button id="saveQuizBtn" class="btn">Salvar Quiz</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 1rem;">
+        <h3 class="section-title">Meus Quizzes Salvos</h3>
+        <div id="quiz-list">
+          <!-- A lista de quizzes salvos aparecerá aqui -->
+        </div>
+      </div>
+    </section>
+
     <dialog class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
       <div class="dialog">
         <h3 id="exportTitle" class="section-title">Exportar</h3>
@@ -156,6 +183,26 @@
     </dialog>
 
     <footer class="footer">Feito com ☕ e criticidade pedagógica. Funciona offline. Código pronto para GitHub Pages ou Vercel.</footer>
+  </div>
+
+  <div id="quizPlayerModal" class="modal">
+    <div class="dialog" style="max-width: 600px;">
+      <div id="playerContent">
+        <h3 id="playerQuizTitle" class="section-title">Carregando Quiz...</h3>
+        <div id="playerQuestionContainer">
+          <p id="playerQuestionText" style="font-size: 1.1rem; margin-bottom: 1.5rem;"></p>
+          <div id="playerAnswersContainer" class="answers-container"></div>
+        </div>
+        <div id="playerFeedbackContainer" style="margin-top: 1.5rem; text-align: right;">
+          <button id="playerNextBtn" class="btn" hidden>Próxima Pergunta</button>
+        </div>
+      </div>
+      <div id="playerSummaryContainer" hidden>
+        <h4 class="section-title">Fim do Quiz!</h4>
+        <p>Sua pontuação: <strong id="playerFinalScore"></strong></p>
+        <button id="playerCloseBtn" class="btn">Fechar</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>

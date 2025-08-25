@@ -182,13 +182,6 @@ function droppedItemNode(section, item){
   return node;
 }
 
-function syncWorkspaceDOM(){
-  ["objectives","activities","games","assessments"].forEach(section=>{
-    const list = zoneNode(section);
-    list.innerHTML = "";
-    appState.workspace[section].forEach(it=> list.appendChild(droppedItemNode(section, it)));
-  });
-}
 
 function enableDnD(){
   // Zonas aceitam drop de cards da biblioteca
@@ -235,8 +228,7 @@ function enableSortable(){
   });
 }
 
-// Patch para incluir data-id
-function syncWorkspaceDOM_withIds(){
+function syncWorkspaceDOM(){
   ["objectives","activities","games","assessments"].forEach(section=>{
     const list = zoneNode(section);
     list.innerHTML = "";
@@ -380,7 +372,7 @@ function attachEvents(){
       try{
         const obj = JSON.parse(reader.result);
         appState = Object.assign({}, appState, obj);
-        syncWorkspaceDOM_withIds(); renderMyActivities(); updateStats(); saveState();
+        syncWorkspaceDOM(); renderMyActivities(); updateStats(); saveState();
         alert("Estado importado com sucesso.");
       }catch(err){ alert("JSON inválido."); }
     };
@@ -391,9 +383,10 @@ function attachEvents(){
   $.on(qs("#addCustom"), "click", ()=>{
     const title = qs("#customTitle").value.trim();
     const tags = qs("#customTags").value.trim();
+    const description = qs("#customDescription").value.trim();
     if(!title){ alert("Dê um título."); return; }
-    appState.myActivities.push({ title, tags, description: "" });
-    qs("#customTitle").value = ""; qs("#customTags").value = "";
+    appState.myActivities.push({ title, tags, description });
+    qs("#customTitle").value = ""; qs("#customTags").value = ""; qs("#customDescription").value = "";
     renderMyActivities(); saveState();
   });
 
@@ -414,14 +407,24 @@ function attachEvents(){
   });
 }
 
+function handleRouting(){
+  const hash = window.location.hash.substring(1);
+  if (['tab-library', 'tab-workspace', 'tab-my'].includes(hash)) {
+    selectTab(hash);
+  }
+}
+
 // ---------- Init ----------
 (async function init(){
   await loadBNCC();
   attachEvents();
   enableDnD();
   renderLibrary();
-  syncWorkspaceDOM_withIds();
+  syncWorkspaceDOM();
   enableSortable();
   renderMyActivities();
   updateStats();
+
+  window.addEventListener('hashchange', handleRouting, false);
+  handleRouting();
 })();

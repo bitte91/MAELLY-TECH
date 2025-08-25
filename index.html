@@ -112,9 +112,12 @@
     <section id="tab-my" role="tabpanel" aria-labelledby="tab-my-btn" hidden>
       <div class="card">
         <h3 class="section-title">Minhas Atividades</h3>
-        <div class="grid grid-3">
+      <div class="custom-activity-adder">
+        <div class="grid grid-2" style="margin-bottom: 8px;">
           <input id="customTitle" class="input focus-ring" placeholder="Título">
           <input id="customTags" class="input focus-ring" placeholder="Tags (opcional)">
+        </div>
+        <textarea id="customDescription" class="input focus-ring" placeholder="Descrição..." style="width:100%; box-sizing: border-box; margin-bottom: 8px;"></textarea>
           <button id="addCustom" class="btn">+ Adicionar</button>
         </div>
       </div>

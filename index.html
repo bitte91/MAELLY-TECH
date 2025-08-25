@@ -37,6 +37,7 @@
       <button class="tab focus-ring" role="tab" aria-selected="true" aria-controls="tab-library" id="tab-library-btn">Biblioteca BNCC</button>
       <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-workspace" id="tab-workspace-btn">Workspace</button>
       <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-my" id="tab-my-btn">Minhas Atividades</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-chatbot" id="tab-chatbot-btn">Gerador de Histórias</button>
     </nav>
 
     <section id="tab-library" role="tabpanel" aria-labelledby="tab-library-btn">
@@ -122,6 +123,21 @@
         </div>
       </div>
       <div class="card" id="myActivitiesList"></div>
+    </section>
+
+    <section id="tab-chatbot" role="tabpanel" aria-labelledby="tab-chatbot-btn" hidden>
+      <div class="card">
+        <h3 class="section-title">Gerador de Histórias</h3>
+        <div class="chat-container">
+          <div class="chat-messages" id="chatMessages">
+            <!-- As mensagens do chat aparecerão aqui -->
+          </div>
+          <div class="chat-input-area">
+            <input type="text" id="chatInput" class="input focus-ring" placeholder="Digite sua resposta...">
+            <button id="chatSendBtn" class="btn">Enviar</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <dialog class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">

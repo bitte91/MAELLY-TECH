@@ -60,32 +60,34 @@
   },
   "5º ano": {
     "Língua Portuguesa": [
-      {
-        "codigo": "EF05LP01",
-        "tema": "Leitura",
-        "descricao": "Inferir informações implícitas em textos narrativos.",
-        "tags": [
-          "inferência",
-          "leitura"
-        ]
-      },
-      {
-        "codigo": "EF05LP06",
-        "tema": "Coesão",
-        "descricao": "Empregar conectivos para organizar ideias em textos.",
-        "tags": [
-          "coesão",
-          "escrita"
-        ]
-      },
-      {
-        "codigo": "EF05LP20",
-        "tema": "Gramática",
-        "descricao": "Reconhecer classes de palavras em textos diversos.",
-        "tags": [
-          "gramática"
-        ]
-      }
+      { "codigo": "EF05LP01", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Grafar palavras utilizando regras de correspondência fonema-grafema regulares, contextuais e morfológicas e palavras de uso frequente com correspondências irregulares.", "tags": [] },
+      { "codigo": "EF05LP02", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Identificar o caráter polissêmico das palavras, comparando o significado em contextos científicos e usuais.", "tags": [] },
+      { "codigo": "EF05LP03", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Acentuar corretamente palavras oxítonas, paroxítonas e proparoxítonas.", "tags": [] },
+      { "codigo": "EF05LP04", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Diferenciar pontuação em textos e reconhecer efeitos de sentido.", "tags": [] },
+      { "codigo": "EF05LP05", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Identificar tempos verbais (presente, passado, futuro) do modo indicativo.", "tags": [] },
+      { "codigo": "EF05LP06", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Flexionar verbos em concordância com pronomes pessoais/nomes sujeitos.", "tags": [] },
+      { "codigo": "EF05LP07", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Identificar o uso de conjunções e a relação entre partes do texto.", "tags": [] },
+      { "codigo": "EF05LP08", "tema": "Análise linguística/semiótica (Ortografização)", "descricao": "Diferenciar palavras primitivas, derivadas e compostas, e por prefixo e sufixo.", "tags": [] },
+      { "codigo": "EF05LP09", "tema": "Leitura/escuta (compartilhada e autônoma)", "descricao": "Ler e compreender textos instrucionais de regras de jogo e gêneros cotidianos.", "tags": [] },
+      { "codigo": "EF05LP10", "tema": "Leitura/escuta (compartilhada e autônoma)", "descricao": "Ler e compreender anedotas, piadas e cartuns do cotidiano.", "tags": [] },
+      { "codigo": "EF05LP11", "tema": "Produção de textos (escrita compartilhada e autônoma)", "descricao": "Registrar anedotas, piadas e cartuns do cotidiano, segundo as convenções do gênero.", "tags": [] },
+      { "codigo": "EF05LP12", "tema": "Produção de textos (escrita compartilhada e autônoma)", "descricao": "Planejar e produzir textos instrucionais de regras de jogo.", "tags": [] },
+      { "codigo": "EF05LP13", "tema": "Oralidade", "descricao": "Assistir a vlogs infantis e produzir resenhas digitais em áudio ou vídeo.", "tags": [] },
+      { "codigo": "EF05LP14", "tema": "Leitura/escuta (compartilhada e autônoma)", "descricao": "Identificar formatação de resenha crítica em textos.", "tags": [] },
+      { "codigo": "EF05LP15", "tema": "Leitura/escuta (compartilhada e autônoma)", "descricao": "Compreender notícias, reportagens e vlogs argumentativos.", "tags": [] },
+      { "codigo": "EF05LP16", "tema": "Leitura/escuta (compartilhada e autônoma)", "descricao": "Comparar informações sobre um mesmo fato em diferentes mídias.", "tags": [] },
+      { "codigo": "EF05LP17", "tema": "Produção de textos (escrita compartilhada e autônoma)", "descricao": "Produzir roteiro para reportagem digital sobre temas de interesse escolar.", "tags": [] },
+      { "codigo": "EF05LP18", "tema": "Produção de textos (escrita compartilhada e autônoma)", "descricao": "Produzir e editar vídeo para vlogs argumentativos infantis.", "tags": [] },
+      { "codigo": "EF05LP19", "tema": "Oralidade", "descricao": "Argumentar oralmente sobre temas sociais baseando-se em fatos de diferentes mídias.", "tags": [] },
+      { "codigo": "EF05LP20", "tema": "Análise semiótica", "descricao": "Analisar força de argumentos em textos midiáticos infantis.", "tags": [] },
+      { "codigo": "EF05LP21", "tema": "Análise semiótica", "descricao": "Analisar entonação e expressão em vlogs opinativos.", "tags": [] },
+      { "codigo": "EF05LP22", "tema": "Leitura", "descricao": "Ler e compreender verbetes de dicionário.", "tags": [] },
+      { "codigo": "EF05LP23", "tema": "Leitura", "descricao": "Comparar informações em gráficos ou tabelas.", "tags": [] },
+      { "codigo": "EF05LP24", "tema": "Produção escrita", "descricao": "Planejar e produzir textos com fontes diversas e recursos gráficos.", "tags": [] },
+      { "codigo": "EF05LP25", "tema": "Produção escrita", "descricao": "Produzir verbetes de dicionário digitais ou impressos.", "tags": [] },
+      { "codigo": "EF05LP26", "tema": "Análise e Ortografização", "descricao": "Utilizar regras gramaticais ao produzir textos poéticos.", "tags": [] },
+      { "codigo": "EF05LP27", "tema": "Produção escrita", "descricao": "Utilizar coesão e articuladores em textos poéticos.", "tags": [] },
+      { "codigo": "EF05LP28", "tema": "Leitura", "descricao": "Observar recursos multissemióticos em textos digitais infantis.", "tags": [] }
     ],
     "Matemática": [
       {

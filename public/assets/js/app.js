@@ -80,7 +80,7 @@ const FALLBACK = {
 
 async function loadBNCC(){
   try{
-    const res = await fetch("bncc.json",{cache:"no-cache"});
+    const res = await fetch("/bncc.json",{cache:"no-cache"});
     if(!res.ok) throw new Error("fetch bncc.json");
     BNCC = await res.json();
   }catch(e){

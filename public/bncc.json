@@ -1,32 +1,32 @@
 {
   "2º ano": {
     "Língua Portuguesa": [
-      {
-        "codigo": "EF02LP01",
-        "tema": "Leitura",
-        "descricao": "Identificar o assunto de textos informativos curtos.",
-        "tags": [
-          "leitura",
-          "compreensão"
-        ]
-      },
-      {
-        "codigo": "EF02LP02",
-        "tema": "Produção de texto",
-        "descricao": "Produzir bilhetes simples com finalidade comunicativa.",
-        "tags": [
-          "escrita",
-          "gêneros"
-        ]
-      },
-      {
-        "codigo": "EF02LP03",
-        "tema": "Oralidade",
-        "descricao": "Relatar experiências pessoais com sequência temporal.",
-        "tags": [
-          "oralidade"
-        ]
-      }
+      { "codigo": "EF02LP01", "tema": "Análise Linguística/Semiótica", "descricao": "Utilizar grafia correta, maiúsculas, segmentação e pontuação básica.", "tags": [] },
+      { "codigo": "EF02LP02", "tema": "Análise Linguística/Semiótica", "descricao": "Segmentar palavras em sílabas e manipular sílabas para formar novas palavras.", "tags": [] },
+      { "codigo": "EF02LP03", "tema": "Análise Linguística/Semiótica", "descricao": "Ler e escrever palavras com correspondências regulares entre letras e fonemas.", "tags": [] },
+      { "codigo": "EF02LP04", "tema": "Análise Linguística/Semiótica", "descricao": "Ler e escrever palavras com sílabas CV, V, CVC, CCV, reconhecendo vogais em todas.", "tags": [] },
+      { "codigo": "EF02LP05", "tema": "Análise Linguística/Semiótica", "descricao": "Ler e escrever palavras com marcas de nasalidade.", "tags": [] },
+      { "codigo": "EF02LP06", "tema": "Análise Linguística/Semiótica", "descricao": "Reconhecer o princípio acrofônico no nome das letras.", "tags": [] },
+      { "codigo": "EF02LP07", "tema": "Análise Linguística/Semiótica", "descricao": "Escrever em letra imprensa e cursiva.", "tags": [] },
+      { "codigo": "EF02LP08", "tema": "Análise Linguística/Semiótica", "descricao": "Segmentar corretamente palavras em frases e textos.", "tags": [] },
+      { "codigo": "EF02LP09", "tema": "Análise Linguística/Semiótica", "descricao": "Usar adequadamente ponto final, interrogação e exclamação.", "tags": [] },
+      { "codigo": "EF02LP10", "tema": "Análise Linguística/Semiótica", "descricao": "Identificar sinônimos e formar antônimos com prefixos de negação.", "tags": [] },
+      { "codigo": "EF02LP11", "tema": "Análise Linguística/Semiótica", "descricao": "Formar aumentativos e diminutivos (-ão, -inho, -zinho).", "tags": [] },
+      { "codigo": "EF02LP16", "tema": "Análise Linguística/Semiótica", "descricao": "Identificar e reproduzir formatações de bilhetes, cartas, e-mails, receitas e relatos.", "tags": [] },
+      { "codigo": "EF02LP17", "tema": "Análise Linguística/Semiótica", "descricao": "Organizar relatos pessoais com sequência temporal.", "tags": [] },
+      { "codigo": "EF02LP28", "tema": "Análise Linguística/Semiótica", "descricao": "Reconhecer conflito e resolução em narrativas ficcionais.", "tags": [] },
+      { "codigo": "EF02LP12", "tema": "Leitura/Escuta", "descricao": "Ler e compreender cantigas e letras de canção com autonomia.", "tags": [] },
+      { "codigo": "EF02LP26", "tema": "Leitura/Escuta", "descricao": "Ler textos literários variados, desenvolvendo gosto pela leitura.", "tags": [] },
+      { "codigo": "EF02LP13", "tema": "Produção de Textos", "descricao": "Produzir bilhetes e cartas, considerando situação comunicativa e finalidade.", "tags": [] },
+      { "codigo": "EF02LP14", "tema": "Produção de Textos", "descricao": "Produzir relatos de experiências pessoais com coesão temporal.", "tags": [] },
+      { "codigo": "EF02LP27", "tema": "Produção de Textos", "descricao": "Reescrever textos narrativos literários lidos.", "tags": [] },
+      { "codigo": "EF02LP15", "tema": "Oralidade", "descricao": "Cantar cantigas e canções, respeitando ritmo e melodia.", "tags": [] },
+      { "codigo": "EF12LP01", "tema": "Leitura/Escuta", "descricao": "Ler palavras novas com precisão, globalmente ou por decodificação.", "tags": [] },
+      { "codigo": "EF12LP02", "tema": "Leitura/Escuta", "descricao": "Selecionar e ler textos com mediação do professor.", "tags": [] },
+      { "codigo": "EF12LP04", "tema": "Leitura/Escuta", "descricao": "Ler e compreender listas, agendas, calendários, convites e receitas.", "tags": [] },
+      { "codigo": "EF12LP05", "tema": "Produção de Textos", "descricao": "Produzir histórias, poemas, tiras e HQs em colaboração.", "tags": [] },
+      { "codigo": "EF12LP06", "tema": "Produção de Textos", "descricao": "Produzir recados, convites e receitas em áudio ou vídeo digital.", "tags": [] },
+      { "codigo": "EF12LP03", "tema": "Escrita", "descricao": "Copiar textos breves mantendo formatação e pontuação.", "tags": [] }
     ],
     "Matemática": [
       {

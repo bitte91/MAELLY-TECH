@@ -30,10 +30,12 @@
         <img src="/brand/logo.svg" alt="MestreLúdico Logo" style="height: 40px;">
       </div>
       <div class="toolbar" role="toolbar" aria-label="Ferramentas rápidas">
-        <button class="btn btn--ghost focus-ring" id="toggleTeaBtn" aria-pressed="false" title="Alternar Modo TEA">🧩 Modo TEA</button>
-        <button class="btn focus-ring" id="openExport">⬇️ Exportar</button>
-        <button class="btn btn--ghost focus-ring" id="exportJSON">💾 Exportar JSON</button>
-        <label class="btn btn--ghost focus-ring" title="Importar JSON">
+        <button class="btn btn--ghost focus-ring" id="toggleTheme" data-tooltip="Alternar tema claro/escuro" data-tooltip-position="bottom">🌙 Tema</button>
+        <button class="btn btn--ghost focus-ring" id="toggleBulkMode" aria-pressed="false" data-tooltip="Ativar/desativar modo de seleção múltipla (Ctrl+A)" data-tooltip-position="bottom">🗐️ Seleção</button>
+        <button class="btn btn--ghost focus-ring" id="toggleTeaBtn" aria-pressed="false" data-tooltip="Alternar modo de adaptação para TEA (Ctrl+T)" data-tooltip-position="bottom">🧩 Modo TEA</button>
+        <button class="btn focus-ring" id="openExport" data-tooltip="Abrir opções de exportação (Ctrl+E)" data-tooltip-position="bottom">⬇️ Exportar</button>
+        <button class="btn btn--ghost focus-ring" id="exportJSON" data-tooltip="Exportação rápida em JSON (Ctrl+Shift+E)" data-tooltip-position="bottom">💾 Exportar JSON</button>
+        <label class="btn btn--ghost focus-ring" data-tooltip="Importar configurações salvas" data-tooltip-position="bottom">
           📥 Importar JSON
           <input type="file" id="importJSON" accept="application/json" class="sr-only">
         </label>
@@ -41,11 +43,11 @@
     </header>
 
     <nav class="tablist" role="tablist" aria-label="Seções principais">
-      <button class="tab focus-ring" role="tab" aria-selected="true" aria-controls="tab-library" id="tab-library-btn">Biblioteca BNCC</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-workspace" id="tab-workspace-btn">Workspace</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-my" id="tab-my-btn">Minhas Atividades</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-chatbot" id="tab-chatbot-btn">Gerador de Histórias</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-quiz" id="tab-quiz-btn">Criador de Jogos</button>
+      <button class="tab focus-ring" role="tab" aria-selected="true" aria-controls="tab-library" id="tab-library-btn" data-tooltip="Navegar pelas habilidades da BNCC (Alt+1)" data-tooltip-position="bottom">Biblioteca BNCC</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-workspace" id="tab-workspace-btn" data-tooltip="Área de construção do plano de aula (Alt+2)" data-tooltip-position="bottom">Workspace</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-my" id="tab-my-btn" data-tooltip="Gerenciar suas atividades personalizadas (Alt+3)" data-tooltip-position="bottom">Minhas Atividades</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-chatbot" id="tab-chatbot-btn" data-tooltip="Criar histórias interativas para as aulas (Alt+4)" data-tooltip-position="bottom">Gerador de Histórias</button>
+      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-quiz" id="tab-quiz-btn" data-tooltip="Criar quizzes educativos (Alt+5)" data-tooltip-position="bottom">Criador de Jogos</button>
     </nav>
 
     <section id="tab-library" role="tabpanel" aria-labelledby="tab-library-btn">
@@ -71,13 +73,114 @@
             <input id="busca" class="input focus-ring" placeholder="código, tema ou palavra-chave">
           </div>
         </div>
+        
+        <!-- Advanced Search Filters -->
+        <details class="advanced-search" id="advancedSearch">
+          <summary class="search-toggle">Filtros Avançados</summary>
+          <div class="advanced-filters">
+            <div class="grid grid-4">
+              <div>
+                <label for="difficultyFilter">Dificuldade</label>
+                <select id="difficultyFilter" class="select focus-ring">
+                  <option value="">Todas</option>
+                  <option value="facil">Fácil</option>
+                  <option value="medio">Médio</option>
+                  <option value="dificil">Difícil</option>
+                </select>
+              </div>
+              <div>
+                <label for="durationFilter">Duração (min)</label>
+                <select id="durationFilter" class="select focus-ring">
+                  <option value="">Qualquer</option>
+                  <option value="0-30">0-30 min</option>
+                  <option value="30-60">30-60 min</option>
+                  <option value="60+">60+ min</option>
+                </select>
+              </div>
+              <div>
+                <label for="teaFilter">Adaptado para TEA</label>
+                <select id="teaFilter" class="select focus-ring">
+                  <option value="">Ambos</option>
+                  <option value="yes">Sim</option>
+                  <option value="no">Não</option>
+                </select>
+              </div>
+              <div>
+                <label for="sortBy">Ordenar por</label>
+                <select id="sortBy" class="select focus-ring">
+                  <option value="codigo">Código</option>
+                  <option value="tema">Tema</option>
+                  <option value="relevancia">Relevância</option>
+                </select>
+              </div>
+            </div>
+            <div class="search-actions">
+              <button class="btn btn--sm" id="applyFilters">Aplicar Filtros</button>
+              <button class="btn btn--sm btn--ghost" id="clearFilters">Limpar Filtros</button>
+              <button class="btn btn--sm btn--ghost" id="saveSearch">Salvar Busca</button>
+            </div>
+          </div>
+        </details>
+        
+        <!-- Saved Searches -->
+        <div class="saved-searches" id="savedSearches" style="margin-top: 12px;"></div>
+        
+        <!-- Quick Filters -->
+        <div class="quick-filters" style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn--sm btn--ghost" id="filterFavorites" data-tooltip="Mostrar apenas favoritos">❤️ Favoritos</button>
+          <button class="btn btn--sm btn--ghost" id="filterRecent" data-tooltip="Mostrar recentemente usados">🕑 Recentes</button>
+          <button class="btn btn--sm btn--ghost" id="filterAll" data-tooltip="Mostrar todas as habilidades">📝 Todas</button>
+        </div>
       </div>
 
       <div class="library" id="libraryList" aria-live="polite" aria-busy="false"></div>
-      <p class="footer">Dica: arraste cards para o <strong>Workspace</strong>, ou use os botões “Adicionar”. Atalhos: <span class="kbd">/</span> focar busca, <span class="kbd">g</span> Workspace.</p>
+      <p class="footer">Dica: arraste cards para o <strong>Workspace</strong>, ou use os botões "Adicionar". 
+      Atalhos: <span class="kbd">Ctrl+F</span> busca, <span class="kbd">Ctrl+A</span> selecionar tudo, <span class="kbd">F1</span> ajuda completa.</p>
     </section>
 
     <section id="tab-workspace" role="tabpanel" aria-labelledby="tab-workspace-btn" hidden>
+      <!-- Quick Templates Section -->
+      <div class="card template-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 class="section-title" style="margin: 0;">Modelos de Plano de Aula</h3>
+          <button class="btn btn--danger btn--sm" id="resetWorkspace" data-tooltip="Limpar todo o workspace" data-tooltip-position="left">
+            🗑️ Limpar Tudo
+          </button>
+        </div>
+        <div class="template-grid">
+          <button class="template-card" data-template="matematica-basica">
+            <div class="template-icon">📊</div>
+            <div class="template-title">Matemática Básica</div>
+            <div class="template-desc">Operações fundamentais e resolução de problemas</div>
+          </button>
+          <button class="template-card" data-template="leitura-compreensao">
+            <div class="template-icon">📚</div>
+            <div class="template-title">Leitura e Compreensão</div>
+            <div class="template-desc">Desenvolvimento de habilidades leitoras</div>
+          </button>
+          <button class="template-card" data-template="tea-adaptado">
+            <div class="template-icon">🧩</div>
+            <div class="template-title">Plano TEA</div>
+            <div class="template-desc">Estruturado para alunos com TEA</div>
+          </button>
+          <button class="template-card" data-template="atividade-ludica">
+            <div class="template-icon">🎲</div>
+            <div class="template-title">Atividade Lúdica</div>
+            <div class="template-desc">Aprendizado através de jogos</div>
+          </button>
+          <button class="template-card" data-template="avaliacao-formativa">
+            <div class="template-icon">📝</div>
+            <div class="template-title">Avaliação Formativa</div>
+            <div class="template-desc">Acompanhamento contínuo do aprendizado</div>
+          </button>
+          <button class="template-card" data-template="personalizado">
+            <div class="template-icon">⚙️</div>
+            <div class="template-title">Criar Personalizado</div>
+            <div class="template-desc">Começar do zero</div>
+          </button>
+        </div>
+      </div>
+      
       <div class="card canvas">
         <h3 class="section-title">Plano de Aula — Workspace</h3>
         <div class="dropzones" aria-label="Zonas de construção do plano">
@@ -241,5 +344,13 @@
       </div>
     </div>
   </div>
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container" class="toast-container"></div>
+  
+  <!-- Back to Top Button -->
+  <button id="backToTop" class="back-to-top" data-tooltip="Voltar ao topo" data-tooltip-position="left" aria-label="Voltar ao topo da página">
+    ↑
+  </button>
 </body>
 </html>

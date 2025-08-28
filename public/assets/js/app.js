@@ -92,28 +92,1113 @@ async function loadBNCC(){
 // ---------- Util ----------
 const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
+// ---------- Toast Notifications ----------
+class ToastManager {
+  constructor() {
+    this.container = qs('#toast-container');
+    this.toasts = new Map();
+  }
+
+  show(message, type = 'info', duration = 4000) {
+    const id = crypto.randomUUID();
+    const toast = this.createToast(id, message, type);
+    
+    this.container.appendChild(toast);
+    this.toasts.set(id, toast);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+
+    // Auto remove
+    if (duration > 0) {
+      setTimeout(() => this.remove(id), duration);
+    }
+
+    return id;
+  }
+
+  createToast(id, message, type) {
+    const toast = $.el('div', { className: `toast toast--${type}` });
+    toast.dataset.id = id;
+
+    const icons = {
+      success: '✅',
+      error: '❌',
+      warning: '⚠️',
+      info: 'ℹ️'
+    };
+
+    toast.innerHTML = `
+      <span class="toast__icon">${icons[type] || icons.info}</span>
+      <div class="toast__content">${esc(message)}</div>
+      <button class="toast__close" title="Fechar">×</button>
+    `;
+
+    // Close button event
+    const closeBtn = toast.querySelector('.toast__close');
+    $.on(closeBtn, 'click', () => this.remove(id));
+
+    return toast;
+  }
+
+  remove(id) {
+    const toast = this.toasts.get(id);
+    if (!toast) return;
+
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+      this.toasts.delete(id);
+    }, 300);
+  }
+
+  success(message, duration) {
+    return this.show(message, 'success', duration);
+  }
+
+  error(message, duration) {
+    return this.show(message, 'error', duration);
+  }
+
+  warning(message, duration) {
+    return this.show(message, 'warning', duration);
+  }
+
+  info(message, duration) {
+    return this.show(message, 'info', duration);
+  }
+}
+
+// Global toast instance
+const toast = new ToastManager();
+
+// ---------- Tooltip System ----------
+class TooltipManager {
+  constructor() {
+    this.tooltips = new Map();
+    this.init();
+  }
+
+  init() {
+    // Auto-initialize tooltips from data-tooltip attributes
+    this.initializeExistingTooltips();
+    
+    // Watch for new elements with tooltips
+    const observer = new MutationObserver(() => {
+      this.initializeExistingTooltips();
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  initializeExistingTooltips() {
+    qsa('[data-tooltip]:not([data-tooltip-initialized])').forEach(element => {
+      this.addTooltip(element, element.dataset.tooltip, element.dataset.tooltipPosition || 'top');
+      element.setAttribute('data-tooltip-initialized', 'true');
+    });
+  }
+
+  addTooltip(element, text, position = 'top') {
+    if (!element || !text) return;
+
+    const container = element.closest('.tooltip-container') || this.wrapElement(element);
+    const tooltip = this.createTooltip(text, position);
+    
+    container.appendChild(tooltip);
+    
+    // Accessibility
+    const tooltipId = 'tooltip-' + crypto.randomUUID().slice(0, 8);
+    tooltip.id = tooltipId;
+    element.setAttribute('aria-describedby', tooltipId);
+    
+    this.tooltips.set(element, tooltip);
+    
+    return tooltip;
+  }
+
+  wrapElement(element) {
+    const wrapper = $.el('span', { className: 'tooltip-container' });
+    element.parentNode.insertBefore(wrapper, element);
+    wrapper.appendChild(element);
+    return wrapper;
+  }
+
+  createTooltip(text, position) {
+    const tooltip = $.el('div', { 
+      className: `tooltip tooltip--${position}`,
+      textContent: text,
+      role: 'tooltip'
+    });
+    return tooltip;
+  }
+
+  updateTooltip(element, newText) {
+    const tooltip = this.tooltips.get(element);
+    if (tooltip) {
+      tooltip.textContent = newText;
+    }
+  }
+
+  removeTooltip(element) {
+    const tooltip = this.tooltips.get(element);
+    if (tooltip) {
+      tooltip.remove();
+      element.removeAttribute('aria-describedby');
+      this.tooltips.delete(element);
+    }
+  }
+}
+
+// Global tooltip instance
+const tooltipManager = new TooltipManager();
+
+// ---------- Loading States Manager ----------
+class LoadingManager {
+  constructor() {
+    this.loadingStates = new Map();
+  }
+
+  showButtonLoading(buttonElement, loadingText = null) {
+    if (!buttonElement) return;
+    
+    const originalText = buttonElement.textContent;
+    this.loadingStates.set(buttonElement, {
+      originalText,
+      originalDisabled: buttonElement.disabled
+    });
+    
+    buttonElement.classList.add('loading');
+    buttonElement.disabled = true;
+    
+    if (loadingText) {
+      buttonElement.textContent = loadingText;
+    }
+  }
+
+  hideButtonLoading(buttonElement) {
+    if (!buttonElement) return;
+    
+    const state = this.loadingStates.get(buttonElement);
+    if (state) {
+      buttonElement.classList.remove('loading');
+      buttonElement.textContent = state.originalText;
+      buttonElement.disabled = state.originalDisabled;
+      this.loadingStates.delete(buttonElement);
+    }
+  }
+
+  showOverlayLoading(containerElement, message = 'Carregando...') {
+    if (!containerElement) return;
+    
+    const overlay = $.el('div', { className: 'loading-overlay' });
+    overlay.innerHTML = `
+      <div style="text-align: center;">
+        <div class="spinner spinner--large"></div>
+        <div style="margin-top: 8px; font-size: 14px;">${message}</div>
+      </div>
+    `;
+    
+    containerElement.style.position = 'relative';
+    containerElement.appendChild(overlay);
+    
+    return overlay;
+  }
+
+  hideOverlayLoading(containerElement) {
+    if (!containerElement) return;
+    
+    const overlay = containerElement.querySelector('.loading-overlay');
+    if (overlay) {
+      overlay.remove();
+    }
+  }
+
+  showSkeletonLoading(containerElement, count = 3) {
+    if (!containerElement) return;
+    
+    containerElement.innerHTML = '';
+    
+    for (let i = 0; i < count; i++) {
+      const skeleton = $.el('div', { className: 'skeleton skeleton-card' });
+      containerElement.appendChild(skeleton);
+    }
+  }
+
+  createInlineSpinner(size = 'small') {
+    const className = size === 'large' ? 'spinner spinner--large' : 'spinner';
+    return $.el('span', { className });
+  }
+}
+
+// Global loading manager
+const loadingManager = new LoadingManager();
+
+// ---------- Theme Manager ----------
+class ThemeManager {
+  constructor() {
+    this.currentTheme = 'auto';
+    this.init();
+  }
+
+  init() {
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('bncc-theme-preference') || 'auto';
+    this.setTheme(savedTheme, false);
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (this.currentTheme === 'auto') {
+        this.updateThemeDisplay();
+      }
+    });
+  }
+
+  setTheme(theme, save = true) {
+    this.currentTheme = theme;
+    
+    // Remove existing theme classes
+    document.documentElement.classList.remove('theme-light', 'theme-dark', 'theme-auto');
+    
+    // Apply new theme
+    document.documentElement.classList.add(`theme-${theme}`);
+    
+    // Update button display
+    this.updateThemeDisplay();
+    
+    // Save preference
+    if (save) {
+      localStorage.setItem('bncc-theme-preference', theme);
+      toast.info(`Tema alterado para: ${this.getThemeDisplayName(theme)}`);
+    }
+  }
+
+  toggleTheme() {
+    const themes = ['auto', 'light', 'dark'];
+    const currentIndex = themes.indexOf(this.currentTheme);
+    const nextTheme = themes[(currentIndex + 1) % themes.length];
+    this.setTheme(nextTheme);
+  }
+
+  getThemeDisplayName(theme) {
+    const names = {
+      'auto': 'Automático',
+      'light': 'Claro', 
+      'dark': 'Escuro'
+    };
+    return names[theme] || theme;
+  }
+
+  updateThemeDisplay() {
+    const button = qs('#toggleTheme');
+    if (!button) return;
+    
+    const icons = {
+      'auto': '🌌',
+      'light': '☀️',
+      'dark': '🌙'
+    };
+    
+    const currentIcon = icons[this.currentTheme] || icons.auto;
+    button.innerHTML = `${currentIcon} ${this.getThemeDisplayName(this.currentTheme)}`;
+    
+    // Update tooltip
+    const tooltip = button.closest('.tooltip-container')?.querySelector('.tooltip');
+    if (tooltip) {
+      tooltip.textContent = `Tema atual: ${this.getThemeDisplayName(this.currentTheme)}. Clique para alternar.`;
+    }
+  }
+
+  getEffectiveTheme() {
+    if (this.currentTheme === 'auto') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return this.currentTheme;
+  }
+}
+
+// Global theme manager
+const themeManager = new ThemeManager();
+
+// ---------- Back to Top Button ----------
+class BackToTopManager {
+  constructor() {
+    this.button = null;
+    this.threshold = 300; // pixels
+    this.init();
+  }
+
+  init() {
+    this.button = qs('#backToTop');
+    if (!this.button) return;
+
+    // Show/hide based on scroll position
+    window.addEventListener('scroll', this.handleScroll.bind(this), { passive: true });
+    
+    // Click handler
+    $.on(this.button, 'click', this.scrollToTop.bind(this));
+    
+    // Initial check
+    this.handleScroll();
+  }
+
+  handleScroll() {
+    if (!this.button) return;
+    
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (scrollTop > this.threshold) {
+      this.button.classList.add('visible');
+    } else {
+      this.button.classList.remove('visible');
+    }
+  }
+
+  scrollToTop() {
+    // Smooth scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+    
+    // Accessibility: focus on main content
+    setTimeout(() => {
+      const mainElement = qs('main') || qs('.container') || document.body;
+      if (mainElement && mainElement.focus) {
+        mainElement.focus();
+      }
+    }, 500);
+  }
+}
+
+// Global back to top manager
+const backToTopManager = new BackToTopManager();
+
+// ---------- Favorites & Recent Skills ----------
+class FavoritesManager {
+  constructor() {
+    this.favorites = new Set(JSON.parse(localStorage.getItem('bncc-favorites') || '[]'));
+    this.recentlyUsed = JSON.parse(localStorage.getItem('bncc-recent') || '[]');
+  }
+
+  toggleFavorite(skillCode) {
+    if (this.favorites.has(skillCode)) {
+      this.favorites.delete(skillCode);
+      toast.info('Removido dos favoritos');
+    } else {
+      this.favorites.add(skillCode);
+      toast.success('Adicionado aos favoritos');
+    }
+    this.save();
+    return this.favorites.has(skillCode);
+  }
+
+  addToRecent(skillCode) {
+    this.recentlyUsed = this.recentlyUsed.filter(code => code !== skillCode);
+    this.recentlyUsed.unshift(skillCode);
+    this.recentlyUsed = this.recentlyUsed.slice(0, 10); // Keep only 10 recent
+    this.save();
+  }
+
+  save() {
+    localStorage.setItem('bncc-favorites', JSON.stringify([...this.favorites]));
+    localStorage.setItem('bncc-recent', JSON.stringify(this.recentlyUsed));
+  }
+
+  isFavorite(skillCode) {
+    return this.favorites.has(skillCode);
+  }
+}
+
+// Global favorites manager
+const favoritesManager = new FavoritesManager();
+
+// ---------- Enhanced Search & Onboarding ----------
+function showQuickTip(message, element) {
+  const existingTip = qs('.quick-tip');
+  if (existingTip) existingTip.remove();
+  
+  const tip = $.el('div', { className: 'quick-tip' });
+  tip.innerHTML = `
+    <div style="background: var(--brand); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; position: relative; z-index: 10001;">
+      ${message}
+      <button style="background: none; border: none; color: white; float: right; margin-left: 8px;" onclick="this.parentElement.parentElement.remove()">×</button>
+    </div>
+  `;
+  
+  if (element) {
+    element.style.position = 'relative';
+    element.appendChild(tip);
+  } else {
+    document.body.appendChild(tip);
+    Object.assign(tip.style, {
+      position: 'fixed',
+      top: '70px',
+      right: '20px',
+      zIndex: '10001'
+    });
+  }
+  
+  setTimeout(() => tip.remove(), 5000);
+}
+
+function checkFirstVisit() {
+  const hasVisited = localStorage.getItem('bncc-has-visited');
+  if (!hasVisited) {
+    localStorage.setItem('bncc-has-visited', 'true');
+    setTimeout(() => {
+      showQuickTip('Bem-vindo! Use F1 para ver todos os atalhos disponíveis.');
+    }, 1000);
+  }
+}
+
+// ---------- Bulk Selection System ----------
+let bulkSelection = new Set();
+let lastSelectedSkill = null;
+let bulkMode = false;
+
+function toggleBulkMode() {
+  bulkMode = !bulkMode;
+  document.body.classList.toggle('bulk-mode', bulkMode);
+  
+  if (!bulkMode) {
+    clearBulkSelection();
+  }
+  
+  toast.info(`Modo de seleção ${bulkMode ? 'ativado' : 'desativado'}`);
+}
+
+function toggleBulkSelectAll() {
+  const items = qsa('.skill, .dropped-item');
+  const allSelected = items.every(item => item.classList.contains('bulk-selected'));
+  
+  if (allSelected) {
+    clearBulkSelection();
+  } else {
+    items.forEach(item => {
+      item.classList.add('bulk-selected');
+      bulkSelection.add(item.dataset.id || item.dataset.payload);
+    });
+  }
+  
+  updateBulkSelectionUI();
+}
+
+function clearBulkSelection() {
+  bulkSelection.clear();
+  qsa('.bulk-selected').forEach(item => {
+    item.classList.remove('bulk-selected');
+  });
+  updateBulkSelectionUI();
+}
+
+function updateBulkSelectionUI() {
+  const count = bulkSelection.size;
+  const toolbar = qs('.toolbar');
+  
+  // Remove existing bulk toolbar
+  const existingBulkToolbar = qs('.bulk-toolbar');
+  if (existingBulkToolbar) {
+    existingBulkToolbar.remove();
+  }
+  
+  if (count > 0) {
+    const bulkToolbar = $.el('div', { className: 'bulk-toolbar' });
+    bulkToolbar.innerHTML = `
+      <span class="bulk-count">${count} selecionados</span>
+      <button class="btn btn--sm btn--danger" id="bulkDelete">Excluir Selecionados</button>
+      <button class="btn btn--sm btn--ghost" id="bulkClear">Limpar Seleção</button>
+    `;
+    
+    $.on(bulkToolbar.querySelector('#bulkDelete'), 'click', deleteBulkSelected);
+    $.on(bulkToolbar.querySelector('#bulkClear'), 'click', clearBulkSelection);
+    
+    toolbar.appendChild(bulkToolbar);
+  }
+}
+
+function deleteBulkSelected() {
+  let deletedCount = 0;
+  
+  bulkSelection.forEach(id => {
+    // Try to find and delete from workspace
+    for (const section of ['objectives', 'activities', 'games', 'assessments']) {
+      const index = appState.workspace[section].findIndex(item => item.id === id);
+      if (index !== -1) {
+        appState.workspace[section].splice(index, 1);
+        deletedCount++;
+        break;
+      }
+    }
+    
+    // Try to find and delete from activities
+    const activityIndex = appState.myActivities.findIndex((_, idx) => idx.toString() === id);
+    if (activityIndex !== -1) {
+      appState.myActivities.splice(activityIndex, 1);
+      deletedCount++;
+    }
+  });
+  
+  if (deletedCount > 0) {
+    syncWorkspaceDOM();
+    renderMyActivities();
+    updateStats();
+    saveState();
+    toast.success(`${deletedCount} itens excluídos`);
+  }
+  
+  clearBulkSelection();
+}
+
+// ---------- Keyboard Shortcuts Help ----------
+function showKeyboardShortcutsHelp() {
+  const helpModal = $.el('div', { className: 'modal', id: 'keyboardHelpModal' });
+  helpModal.setAttribute('open', '');
+  
+  const shortcuts = [
+    { key: 'Alt + 1-5', desc: 'Navegar entre abas' },
+    { key: 'Ctrl + E', desc: 'Abrir menu de exportação' },
+    { key: 'Ctrl + Shift + E', desc: 'Exportar JSON rápido' },
+    { key: 'Ctrl + T', desc: 'Alternar modo TEA' },
+    { key: 'Ctrl + A', desc: 'Selecionar todos os itens' },
+    { key: 'Ctrl + F', desc: 'Focar na busca' },
+    { key: 'Delete/Backspace', desc: 'Excluir itens selecionados' },
+    { key: 'Escape', desc: 'Limpar seleção/busca' },
+    { key: 'Ctrl + 1-4', desc: 'Adicionar última habilidade às seções' },
+    { key: 'F1 ou Shift + ?', desc: 'Mostrar esta ajuda' }
+  ];
+  
+  const content = `
+    <div class="dialog" style="max-width: 500px;">
+      <h3 class="section-title">Atalhos do Teclado</h3>
+      <div style="margin: 1rem 0;">
+        ${shortcuts.map(s => `
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--muted);">
+            <span class="kbd">${s.key}</span>
+            <span>${s.desc}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="text-align: right; margin-top: 1rem;">
+        <button class="btn btn--ghost" id="closeHelpModal">Fechar</button>
+      </div>
+    </div>
+  `;
+  
+  helpModal.innerHTML = content;
+  document.body.appendChild(helpModal);
+  
+  $.on(helpModal.querySelector('#closeHelpModal'), 'click', () => {
+    helpModal.remove();
+  });
+  
+  // Close on click outside
+  $.on(helpModal, 'click', (e) => {
+    if (e.target === helpModal) {
+      helpModal.remove();
+    }
+  });
+}
+
 // ---------- Biblioteca ----------
+let currentFilters = {
+  ano: '',
+  componente: '',
+  busca: '',
+  dificuldade: '',
+  duracao: '',
+  tea: '',
+  sortBy: 'codigo',
+  onlyFavorites: false,
+  onlyRecent: false
+};
+
+let savedSearches = JSON.parse(localStorage.getItem('bncc-saved-searches') || '[]');
+
 function getFilteredSkills(){
   const ano = qs("#anoSel").value;
   const comp = qs("#compSel").value;
   const term = qs("#busca").value.trim().toLowerCase();
-  const arr = (BNCC?.[ano]?.[comp] || []).filter(it => {
-    if(!term) return true;
-    const hay = (it.codigo+" "+it.tema+" "+it.descricao+" "+(it.tags||[]).join(" ")).toLowerCase();
-    return hay.includes(term);
+  
+  // Get advanced filter values
+  const difficulty = qs("#difficultyFilter")?.value || '';
+  const duration = qs("#durationFilter")?.value || '';
+  const tea = qs("#teaFilter")?.value || '';
+  const sortBy = qs("#sortBy")?.value || 'codigo';
+  
+  currentFilters = { ano, componente: comp, busca: term, dificuldade: difficulty, duracao: duration, tea, sortBy };
+  
+  let arr = (BNCC?.[ano]?.[comp] || []);
+  
+  // Apply quick filters first
+  if (currentFilters.onlyFavorites) {
+    arr = arr.filter(it => favoritesManager.isFavorite(it.codigo));
+  } else if (currentFilters.onlyRecent) {
+    const recentCodes = new Set(favoritesManager.recentlyUsed);
+    arr = arr.filter(it => recentCodes.has(it.codigo));
+  }
+  
+  arr = arr.filter(it => {
+    // Basic text search - enhanced to include tags
+    if(term) {
+      const hay = (
+        it.codigo + " " + 
+        it.tema + " " + 
+        it.descricao + " " + 
+        (it.tags || []).join(" ") + " " +
+        (it.keywords || []).join(" ") // Additional search terms
+      ).toLowerCase();
+      if (!hay.includes(term)) return false;
+    }
+    
+    // Difficulty filter (simulated based on tema)
+    if(difficulty) {
+      const estimatedDifficulty = estimateSkillDifficulty(it);
+      if (estimatedDifficulty !== difficulty) return false;
+    }
+    
+    // Duration filter (simulated)
+    if(duration) {
+      const estimatedDuration = estimateSkillDuration(it);
+      if (!matchesDurationFilter(estimatedDuration, duration)) return false;
+    }
+    
+    // TEA compatibility filter
+    if(tea) {
+      const teaCompatible = isTeaCompatible(it);
+      if ((tea === 'yes' && !teaCompatible) || (tea === 'no' && teaCompatible)) return false;
+    }
+    
+    return true;
   });
+  
+  // Apply sorting
+  arr.sort((a, b) => {
+    switch(sortBy) {
+      case 'tema':
+        return a.tema.localeCompare(b.tema);
+      case 'relevancia':
+        return calculateRelevance(b, term) - calculateRelevance(a, term);
+      default:
+        return a.codigo.localeCompare(b.codigo);
+    }
+  });
+  
   return arr;
+}
+
+// Utility functions for filtering
+function estimateSkillDifficulty(skill) {
+  const complexKeywords = ['resolver', 'analisar', 'comparar', 'interpretar'];
+  const mediumKeywords = ['identificar', 'reconhecer', 'aplicar'];
+  const easyKeywords = ['ler', 'escrever', 'localizar'];
+  
+  const desc = skill.descricao.toLowerCase();
+  
+  if (complexKeywords.some(kw => desc.includes(kw))) return 'dificil';
+  if (mediumKeywords.some(kw => desc.includes(kw))) return 'medio';
+  if (easyKeywords.some(kw => desc.includes(kw))) return 'facil';
+  
+  return 'medio'; // default
+}
+
+function estimateSkillDuration(skill) {
+  const desc = skill.descricao.toLowerCase();
+  if (desc.includes('problem') || desc.includes('texto') || desc.includes('interpreta')) return 45;
+  if (desc.includes('ler') || desc.includes('escrever')) return 35;
+  return 25; // default
+}
+
+function matchesDurationFilter(duration, filter) {
+  switch(filter) {
+    case '0-30': return duration <= 30;
+    case '30-60': return duration > 30 && duration <= 60;
+    case '60+': return duration > 60;
+    default: return true;
+  }
+}
+
+function isTeaCompatible(skill) {
+  // Simple heuristic: some skills are more TEA-friendly
+  const teaFriendlyThemes = ['Leitura', 'Números', 'Geometria', 'Oralidade'];
+  return teaFriendlyThemes.includes(skill.tema);
+}
+
+function calculateRelevance(skill, term) {
+  if (!term) return 0;
+  
+  let score = 0;
+  const lowerTerm = term.toLowerCase();
+  
+  if (skill.codigo.toLowerCase().includes(lowerTerm)) score += 10;
+  if (skill.tema.toLowerCase().includes(lowerTerm)) score += 8;
+  if (skill.descricao.toLowerCase().includes(lowerTerm)) score += 5;
+  
+  (skill.tags || []).forEach(tag => {
+    if (tag.toLowerCase().includes(lowerTerm)) score += 3;
+  });
+  
+  return score;
+}
+
+// Search Management Functions
+function saveCurrentSearch() {
+  const searchName = prompt('Nome para esta busca:');
+  if (!searchName) return;
+  
+  const search = {
+    id: crypto.randomUUID(),
+    name: searchName,
+    filters: { ...currentFilters },
+    created: Date.now()
+  };
+  
+  savedSearches.push(search);
+  localStorage.setItem('bncc-saved-searches', JSON.stringify(savedSearches));
+  renderSavedSearches();
+  toast.success('Busca salva com sucesso!');
+}
+
+function applySavedSearch(searchId) {
+  const search = savedSearches.find(s => s.id === searchId);
+  if (!search) return;
+  
+  // Apply filters
+  qs('#anoSel').value = search.filters.ano;
+  qs('#compSel').value = search.filters.componente;
+  qs('#busca').value = search.filters.busca;
+  
+  if (qs('#difficultyFilter')) qs('#difficultyFilter').value = search.filters.dificuldade;
+  if (qs('#durationFilter')) qs('#durationFilter').value = search.filters.duracao;
+  if (qs('#teaFilter')) qs('#teaFilter').value = search.filters.tea;
+  if (qs('#sortBy')) qs('#sortBy').value = search.filters.sortBy;
+  
+  renderLibrary();
+  toast.info(`Busca "${search.name}" aplicada`);
+}
+
+function deleteSavedSearch(searchId) {
+  savedSearches = savedSearches.filter(s => s.id !== searchId);
+  localStorage.setItem('bncc-saved-searches', JSON.stringify(savedSearches));
+  renderSavedSearches();
+  toast.success('Busca removida');
+}
+
+function renderSavedSearches() {
+  const container = qs('#savedSearches');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (savedSearches.length === 0) {
+    container.innerHTML = '<p style="font-size: 12px; color: var(--muted); margin: 0;">Nenhuma busca salva</p>';
+    return;
+  }
+  
+  const wrapper = $.el('div');
+  wrapper.innerHTML = '<span style="font-size: 12px; color: var(--muted); margin-right: 8px;">Buscas salvas:</span>';
+  
+  savedSearches.forEach(search => {
+    const tag = $.el('span', { className: 'saved-search' });
+    tag.innerHTML = `${esc(search.name)} <span class="remove">×</span>`;
+    
+    $.on(tag, 'click', (e) => {
+      if (e.target.classList.contains('remove')) {
+        e.stopPropagation();
+        deleteSavedSearch(search.id);
+      } else {
+        applySavedSearch(search.id);
+      }
+    });
+    
+    wrapper.appendChild(tag);
+  });
+  
+  container.appendChild(wrapper);
+}
+
+function clearAdvancedFilters() {
+  if (qs('#difficultyFilter')) qs('#difficultyFilter').value = '';
+  if (qs('#durationFilter')) qs('#durationFilter').value = '';
+  if (qs('#teaFilter')) qs('#teaFilter').value = '';
+  if (qs('#sortBy')) qs('#sortBy').value = 'codigo';
+  
+  renderLibrary();
+  toast.info('Filtros limpos');
+}
+
+// ---------- Template System ----------
+const LESSON_TEMPLATES = {
+  'matematica-basica': {
+    name: 'Matemática Básica',
+    description: 'Template para aulas de matemática com foco em operações fundamentais',
+    preferences: {
+      tema: 'Operações Matemáticas Fundamentais',
+      duracao: '50 minutos',
+      turma: '5º ano'
+    },
+    objectives: [
+      { titulo: 'EF05MA03 — Multiplicação', descricao: 'Resolver problemas com multiplicação e divisão.' },
+      { titulo: 'EF05MA07 — Frações', descricao: 'Representar frações e compará-las em diferentes contextos.' }
+    ],
+    activities: [
+      { titulo: 'Atividade Prática', descricao: 'Resolução de problemas do cotidiano usando operações básicas.' },
+      { titulo: 'Exercícios Dirigidos', descricao: 'Lista de exercícios progressivos para fixação.' }
+    ],
+    games: [
+      { titulo: 'Jogo dos Números', descricao: 'Atividade lúdica para praticar cálculos mentais.' }
+    ],
+    assessments: [
+      { titulo: 'Avaliação Diagnóstica', descricao: 'Verificar conhecimentos prévios dos alunos.' }
+    ]
+  },
+  'leitura-compreensao': {
+    name: 'Leitura e Compreensão',
+    description: 'Template focado no desenvolvimento de habilidades de leitura',
+    preferences: {
+      tema: 'Desenvolvimento da Leitura e Compreensão',
+      duracao: '45 minutos',
+      turma: '2º ano'
+    },
+    objectives: [
+      { titulo: 'EF02LP01 — Leitura', descricao: 'Identificar o assunto de textos informativos curtos.' },
+      { titulo: 'EF02LP03 — Oralidade', descricao: 'Relatar experiências pessoais com sequência temporal.' }
+    ],
+    activities: [
+      { titulo: 'Leitura Compartilhada', descricao: 'Leitura em grupo com discussão dos pontos principais.' },
+      { titulo: 'Questões de Compreensão', descricao: 'Perguntas sobre o texto lido para verificar entendimento.' }
+    ],
+    games: [
+      { titulo: 'Caça-Palavras Temático', descricao: 'Encontrar palavras relacionadas ao texto.' }
+    ],
+    assessments: [
+      { titulo: 'Reconto Oral', descricao: 'Aluno reconta a história com suas palavras.' }
+    ]
+  },
+  'tea-adaptado': {
+    name: 'Plano TEA',
+    description: 'Template estruturado especialmente para alunos com TEA',
+    preferences: {
+      tema: 'Aula Adaptada para TEA',
+      duracao: '30 minutos (flexível)',
+      turma: 'Inclusão'
+    },
+    objectives: [
+      { titulo: 'Objetivo Principal', descricao: 'Desenvolvimento de habilidades com suporte visual e estruturação clara.', tea: 'Usar rotina visual, instruções claras e objetivas.' },
+      { titulo: 'Objetivo Secundário', descricao: 'Socialização e comunicação.', tea: 'Atividades estruturadas em pequenos grupos.' }
+    ],
+    activities: [
+      { titulo: 'Atividade Sensorial', descricao: 'Exploração tátil e visual do conteúdo.', tea: 'Material concreto e manipulável.' },
+      { titulo: 'Sequência Lógica', descricao: 'Atividades em etapas bem definidas.', tea: 'Avisos de transição, tempo flexível.' }
+    ],
+    games: [
+      { titulo: 'Jogo Estruturado', descricao: 'Atividade com regras claras e previsíveis.', tea: 'Apoio visual constante, feedback positivo.' }
+    ],
+    assessments: [
+      { titulo: 'Observação Contínua', descricao: 'Acompanhamento individualizado do progresso.', tea: 'Registro diário, adapt. conforme necessidade.' }
+    ]
+  },
+  'atividade-ludica': {
+    name: 'Atividade Lúdica',
+    description: 'Template focado em aprendizado através de jogos e brincadeiras',
+    preferences: {
+      tema: 'Aprender Brincando',
+      duracao: '40 minutos',
+      turma: 'Multisérie'
+    },
+    objectives: [
+      { titulo: 'Aprendizado Lúdico', descricao: 'Desenvolver habilidades através de jogos educativos.' }
+    ],
+    activities: [
+      { titulo: 'Aquecimento Lúdico', descricao: 'Brincadeira inicial para engajar os alunos.' }
+    ],
+    games: [
+      { titulo: 'Jogo Principal', descricao: 'Atividade central com objetivos pedagógicos claros.' },
+      { titulo: 'Jogo de Fixação', descricao: 'Reforço do conteúdo de forma divertida.' },
+      { titulo: 'Desafio Final', descricao: 'Competição saudável para consolidar o aprendizado.' }
+    ],
+    assessments: [
+      { titulo: 'Autoavaliação Lúdica', descricao: 'Reflexão sobre o que aprenderam durante as atividades.' }
+    ]
+  },
+  'avaliacao-formativa': {
+    name: 'Avaliação Formativa',
+    description: 'Template focado no acompanhamento contínuo do aprendizado',
+    preferences: {
+      tema: 'Acompanhamento e Avaliação',
+      duracao: '45 minutos',
+      turma: 'Personalizável'
+    },
+    objectives: [
+      { titulo: 'Diagnóstico', descricao: 'Identificar nível atual de conhecimento dos alunos.' }
+    ],
+    activities: [
+      { titulo: 'Revisão Participativa', descricao: 'Recapitulação dos conteúdos com participação ativa.' }
+    ],
+    games: [],
+    assessments: [
+      { titulo: 'Avaliação Diagnóstica', descricao: 'Verificação inicial dos conhecimentos.' },
+      { titulo: 'Acompanhamento Individual', descricao: 'Observação personalizada de cada aluno.' },
+      { titulo: 'Feedback Construtivo', descricao: 'Orientações para melhoria contínua.' },
+      { titulo: 'Autoavaliação', descricao: 'Reflexão do aluno sobre seu próprio aprendizado.' }
+    ]
+  }
+};
+
+let selectedTemplate = null;
+
+function applyTemplate(templateId) {
+  const template = LESSON_TEMPLATES[templateId];
+  if (!template) {
+    toast.error('Template não encontrado');
+    return;
+  }
+  
+  // Clear current workspace
+  appState.workspace = { objectives: [], activities: [], games: [], assessments: [] };
+  
+  // Apply template preferences
+  if (template.preferences) {
+    qs('#prefTheme').value = template.preferences.tema || '';
+    qs('#prefClass').value = template.preferences.turma || '';
+    qs('#prefTime').value = template.preferences.duracao || '';
+    
+    // Update user profile
+    appState.userProfile.prefTheme = template.preferences.tema;
+    appState.userProfile.prefClass = template.preferences.turma;
+    appState.userProfile.prefTime = template.preferences.duracao;
+  }
+  
+  // Add template items to workspace
+  ['objectives', 'activities', 'games', 'assessments'].forEach(section => {
+    if (template[section]) {
+      template[section].forEach(item => {
+        const workspaceItem = {
+          id: crypto.randomUUID(),
+          codigo: 'TEMPLATE',
+          titulo: item.titulo,
+          descricao: item.descricao,
+          tea: item.tea || null,
+          media: []
+        };
+        appState.workspace[section].push(workspaceItem);
+      });
+    }
+  });
+  
+  // Update UI
+  syncWorkspaceDOM();
+  updateStats();
+  saveState();
+  
+  // Mark selected template
+  qsa('.template-card').forEach(card => card.classList.remove('active'));
+  qs(`[data-template="${templateId}"]`)?.classList.add('active');
+  selectedTemplate = templateId;
+  
+  toast.success(`Template "${template.name}" aplicado com sucesso!`);
+}
+
+function clearWorkspace() {
+  appState.workspace = { objectives: [], activities: [], games: [], assessments: [] };
+  qs('#prefTheme').value = '';
+  qs('#prefClass').value = '';
+  qs('#prefTime').value = '';
+  
+  syncWorkspaceDOM();
+  updateStats();
+  saveState();
+  
+  qsa('.template-card').forEach(card => card.classList.remove('active'));
+  selectedTemplate = null;
+  
+  toast.info('Workspace limpo - pronto para criar do zero');
+}
+
+function resetWorkspaceWithConfirmation() {
+  const totalItems = Object.values(appState.workspace).reduce((sum, arr) => sum + arr.length, 0);
+  
+  if (totalItems === 0) {
+    toast.info('O workspace já está vazio.');
+    return;
+  }
+  
+  const confirmModal = $.el('div', { className: 'modal', id: 'confirmResetModal' });
+  confirmModal.setAttribute('open', '');
+  
+  const content = `
+    <div class="dialog" style="max-width: 400px;">
+      <h3 class="section-title">⚠️ Confirmar Limpeza</h3>
+      <p>Tem certeza que deseja limpar todo o workspace?</p>
+      <p><strong>${totalItems} itens</strong> serão removidos permanentemente.</p>
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem;">
+        <button class="btn btn--ghost" id="cancelReset">Cancelar</button>
+        <button class="btn btn--danger" id="confirmReset">🗑️ Confirmar Limpeza</button>
+      </div>
+    </div>
+  `;
+  
+  confirmModal.innerHTML = content;
+  document.body.appendChild(confirmModal);
+  
+  $.on(confirmModal.querySelector('#cancelReset'), 'click', () => {
+    confirmModal.remove();
+  });
+  
+  $.on(confirmModal.querySelector('#confirmReset'), 'click', () => {
+    clearWorkspace();
+    confirmModal.remove();
+    toast.success(`Workspace limpo! ${totalItems} itens removidos.`);
+  });
+  
+  // Close on click outside
+  $.on(confirmModal, 'click', (e) => {
+    if (e.target === confirmModal) {
+      confirmModal.remove();
+    }
+  });
+  
+  // Focus on confirm button for accessibility
+  setTimeout(() => {
+    confirmModal.querySelector('#confirmReset').focus();
+  }, 100);
 }
 
 function makeSkillCard(skill){
   const card = $.el("div", {className:"skill", draggable:true});
   card.dataset.payload = JSON.stringify({ type:"skill", skill });
+  card.dataset.id = skill.codigo;
+  
   card.addEventListener("dragstart", e=>{
     e.dataTransfer?.setData("text/plain", card.dataset.payload);
   });
 
-  const h = $.el("div");
-  h.innerHTML = `<strong>${esc(skill.codigo)}</strong> — ${esc(skill.tema)}`;
+  const h = $.el("div", { style: 'display: flex; justify-content: space-between; align-items: center;' });
+  const titleSpan = $.el('span');
+  titleSpan.innerHTML = `<strong>${esc(skill.codigo)}</strong> — ${esc(skill.tema)}`;
+  
+  // Favorite button
+  const favoriteBtn = $.el('button', { 
+    className: 'btn--favorite',
+    style: 'background: none; border: none; font-size: 16px; cursor: pointer; padding: 4px;',
+    title: 'Adicionar/remover dos favoritos'
+  });
+  favoriteBtn.textContent = favoritesManager.isFavorite(skill.codigo) ? '❤️' : '🤍';
+  
+  $.on(favoriteBtn, 'click', (e) => {
+    e.stopPropagation();
+    const isFav = favoritesManager.toggleFavorite(skill.codigo);
+    favoriteBtn.textContent = isFav ? '❤️' : '🤍';
+  });
+  
+  h.append(titleSpan, favoriteBtn);
+  
   const p = $.el("p"); p.textContent = skill.descricao;
   const meta = $.el("div", {className:"meta"});
   (skill.tags||[]).forEach(t => {
@@ -121,7 +1206,29 @@ function makeSkillCard(skill){
     meta.appendChild(chip);
   });
 
-  card.addEventListener("click", () => openSkillDetailModal(skill));
+  // Click handler for selection and detail modal
+  card.addEventListener("click", (e) => {
+    lastSelectedSkill = skill;
+    favoritesManager.addToRecent(skill.codigo);
+    
+    // Bulk selection with Ctrl/Cmd
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const isSelected = card.classList.contains('bulk-selected');
+      
+      if (isSelected) {
+        card.classList.remove('bulk-selected');
+        bulkSelection.delete(card.dataset.id);
+      } else {
+        card.classList.add('bulk-selected');
+        bulkSelection.add(card.dataset.id);
+      }
+      
+      updateBulkSelectionUI();
+    } else {
+      openSkillDetailModal(skill);
+    }
+  });
 
   card.append(h,p,meta);
   return card;
@@ -177,13 +1284,39 @@ function zoneNode(section){ return qs(`#${section}-zone .zone-list`); }
 
 function droppedItemNode(section, item){
   const node = $.el("div",{className:"dropped-item", draggable:false});
-  const title = $.el("div"); title.innerHTML = `<strong>${esc(item.titulo)}</strong>${item.tea?` <span class="badge">TEA</span>`:""}`;
-  const desc = $.el("div"); desc.textContent = item.descricao;
-  const left = $.el("div"); left.append(title, desc);
+  node.dataset.id = item.id;
+  
+  const title = $.el("div"); 
+  title.innerHTML = `<strong>${esc(item.titulo)}</strong>${item.tea?` <span class="badge">TEA</span>`:""}`;
+  const desc = $.el("div"); 
+  desc.textContent = item.descricao;
+  const left = $.el("div"); 
+  left.append(title, desc);
+  
   const actions = $.el("div",{className:"actions"});
-  const del = $.el("button",{className:"btn btn--danger btn--sm", title:"Remover"}); del.textContent="Remover";
+  const del = $.el("button",{className:"btn btn--danger btn--sm", title:"Remover"}); 
+  del.textContent="Remover";
   del.addEventListener("click",()=> removeItem(section, item.id));
   actions.appendChild(del);
+  
+  // Add bulk selection support
+  node.addEventListener('click', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const isSelected = node.classList.contains('bulk-selected');
+      
+      if (isSelected) {
+        node.classList.remove('bulk-selected');
+        bulkSelection.delete(item.id);
+      } else {
+        node.classList.add('bulk-selected');
+        bulkSelection.add(item.id);
+      }
+      
+      updateBulkSelectionUI();
+    }
+  });
+  
   node.append(left, actions);
   return node;
 }
@@ -328,8 +1461,11 @@ function askNextQuestion() {
     copyBtn.textContent = "Copiar História";
     $.on(copyBtn, "click", () => {
       navigator.clipboard.writeText(finalStory)
-        .then(() => alert("História copiada!"))
-        .catch(err => console.warn("Falha ao copiar", err));
+        .then(() => toast.success("História copiada!"))
+        .catch(err => {
+          console.warn("Falha ao copiar", err);
+          toast.error("Falha ao copiar. Tente novamente.");
+        });
     });
 
     const resetBtn = $.el("button", { className: "btn btn--sm btn--ghost" });
@@ -445,17 +1581,17 @@ function addQuestion() {
 function saveQuiz() {
   const { currentQuiz } = appState;
   if (!currentQuiz || !currentQuiz.title.trim()) {
-    alert("Por favor, dê um título ao quiz.");
+    toast.warning("Por favor, dê um título ao quiz.");
     return;
   }
   if (currentQuiz.questions.length === 0) {
-    alert("Adicione pelo menos uma pergunta.");
+    toast.warning("Adicione pelo menos uma pergunta.");
     return;
   }
   // Basic validation
   for (const q of currentQuiz.questions) {
     if (!q.text.trim() || q.answers.some(a => !a.trim())) {
-      alert("Por favor, preencha todos os campos de todas as perguntas e respostas.");
+      toast.error("Por favor, preencha todos os campos de todas as perguntas e respostas.");
       return;
     }
   }
@@ -463,7 +1599,7 @@ function saveQuiz() {
   appState.quizzes.push(JSON.parse(JSON.stringify(currentQuiz)));
   saveState();
   renderQuizzesList();
-  alert("Quiz salvo com sucesso!");
+  toast.success("Quiz salvo com sucesso!");
   startNewQuiz();
 }
 
@@ -662,7 +1798,18 @@ async function handleAiSuggestion(skill) {
   const listEl = qs("#aiSuggestionsList");
 
   descEl.textContent = skill.descricao;
-  listEl.innerHTML = `<p>Carregando sugestões... 🧠</p>`;
+  
+  // Show loading state with skeleton
+  listEl.innerHTML = `
+    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+      <div class="spinner"></div>
+      <span>Gerando sugestões personalizadas...</span>
+    </div>
+    <div class="skeleton skeleton-text" style="width: 100%; margin: 8px 0;"></div>
+    <div class="skeleton skeleton-text" style="width: 85%; margin: 8px 0;"></div>
+    <div class="skeleton skeleton-text" style="width: 90%; margin: 8px 0;"></div>
+  `;
+  
   modal.setAttribute("open", "");
 
   try {
@@ -681,7 +1828,14 @@ async function handleAiSuggestion(skill) {
 
   } catch (error) {
     console.error("Failed to get AI suggestions:", error);
-    listEl.innerHTML = `<p style="color: var(--danger);">Ocorreu um erro ao buscar as sugestões. Tente novamente mais tarde.</p>`;
+    listEl.innerHTML = `
+      <div style="color: var(--danger); text-align: center; padding: 20px;">
+        <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
+        <p>Não foi possível conectar com o assistente de IA.</p>
+        <p style="font-size: 12px; color: var(--muted);">Verifique sua conexão ou tente novamente mais tarde.</p>
+        <button class="btn btn--sm" onclick="handleAiSuggestion(${JSON.stringify(skill).replace(/"/g, '&quot;')})">Tentar Novamente</button>
+      </div>
+    `;
   }
 }
 
@@ -691,102 +1845,165 @@ function closeAiModal() {
 
 // ---------- Exportações ----------
 async function exportWorkspaceToPDF(){
-  const { jsPDF } = window.jspdf || {};
-  if(!jsPDF){ alert("jsPDF não carregou. Verifique a conexão."); return; }
-
-  // Create a temporary, off-screen container for the PDF content
-  const printContainer = $.el("div");
-  Object.assign(printContainer.style, {
-    position: "absolute",
-    left: "-9999px",
-    top: "auto",
-    width: "800px",
-    padding: "20px",
-    background: "white",
-    color: "black",
-    fontFamily: `Inter, system-ui, sans-serif`
-  });
-
-  // Build the custom document header
-  const subject = qs("#compSel").value;
-  const allSkills = Object.values(appState.workspace).flat();
-  const uniqueSkillCodes = [...new Set(allSkills.map(item => item.codigo))].filter(code => code !== 'ATV');
-
-  const headerHTML = `
-    <div style="text-align: center; margin-bottom: 20px;">
-      <h2 style="margin: 0;">ESCOLA MUNICIPAL SIMONE DOS SANTOS - TAUBATÉ</h2>
-      <p style="margin: 0;">Professora: MAELLY</p>
-    </div>
-    <div style="margin-bottom: 20px;">
-      <p><strong>Componente Curricular:</strong> ${esc(subject)}</p>
-      <p><strong>Habilidades da BNCC:</strong> ${uniqueSkillCodes.length > 0 ? esc(uniqueSkillCodes.join(', ')) : 'Nenhuma'}</p>
-    </div>
-    <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
-  `;
-
-  // Clone the workspace content
-  const workspaceContent = qs(".canvas").cloneNode(true);
-  // Remove unwanted elements from the clone, like stats and preferences
-  workspaceContent.querySelector('.grid.grid-2')?.remove();
-
-  printContainer.innerHTML = headerHTML;
-  printContainer.appendChild(workspaceContent);
-
-  document.body.appendChild(printContainer);
-
-  window.scrollTo(0,0);
-  const canvas = await html2canvas(printContainer, {scale:2, useCORS:true});
-
-  // Clean up the temporary element
-  document.body.removeChild(printContainer);
-
-  const img = canvas.toDataURL("image/png");
-  const pdf = new jsPDF("p","mm","a4");
-  const pageW = 210, pageH = 297;
-  const margin = 8;
-  const imgW = pageW - margin*2;
-  const imgH = canvas.height * imgW / canvas.width;
-
-  if(imgH <= pageH - margin*2){
-    pdf.addImage(img, "PNG", margin, margin, imgW, imgH);
-  } else {
-    let sY = 0;
-    const pagePxH = (pageH - margin*2) * canvas.width / imgW;
-    while(sY < canvas.height){
-      const slice = document.createElement("canvas");
-      slice.width = canvas.width;
-      slice.height = Math.min(pagePxH, canvas.height - sY);
-      const ctx = slice.getContext("2d");
-      ctx.drawImage(canvas, 0, sY, canvas.width, slice.height, 0, 0, slice.width, slice.height);
-      pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, imgW, (slice.height * imgW)/slice.width);
-      sY += pagePxH;
-      if(sY < canvas.height) pdf.addPage();
+  const exportBtn = qs('#openExport');
+  
+  try {
+    loadingManager.showButtonLoading(exportBtn, '⬇️ Exportando...');
+    
+    const { jsPDF } = window.jspdf || {};
+    if(!jsPDF){ 
+      toast.error("jsPDF não carregou. Verifique a conexão."); 
+      return; 
     }
+
+    // Create a temporary, off-screen container for the PDF content
+    const printContainer = $.el("div");
+    Object.assign(printContainer.style, {
+      position: "absolute",
+      left: "-9999px",
+      top: "auto",
+      width: "800px",
+      padding: "20px",
+      background: "white",
+      color: "black",
+      fontFamily: `Inter, system-ui, sans-serif`
+    });
+
+    // Build the custom document header
+    const subject = qs("#compSel").value;
+    const allSkills = Object.values(appState.workspace).flat();
+    const uniqueSkillCodes = [...new Set(allSkills.map(item => item.codigo))].filter(code => code !== 'ATV');
+
+    const headerHTML = `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;">ESCOLA MUNICIPAL SIMONE DOS SANTOS - TAUBATÉ</h2>
+        <p style="margin: 0;">Professora: MAELLY</p>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <p><strong>Componente Curricular:</strong> ${esc(subject)}</p>
+        <p><strong>Habilidades da BNCC:</strong> ${uniqueSkillCodes.length > 0 ? esc(uniqueSkillCodes.join(', ')) : 'Nenhuma'}</p>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
+    `;
+
+    // Clone the workspace content
+    const workspaceContent = qs(".canvas").cloneNode(true);
+    // Remove unwanted elements from the clone, like stats and preferences
+    workspaceContent.querySelector('.grid.grid-2')?.remove();
+
+    printContainer.innerHTML = headerHTML;
+    printContainer.appendChild(workspaceContent);
+
+    document.body.appendChild(printContainer);
+
+    window.scrollTo(0,0);
+    const canvas = await html2canvas(printContainer, {scale:2, useCORS:true});
+
+    // Clean up the temporary element
+    document.body.removeChild(printContainer);
+
+    const img = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p","mm","a4");
+    const pageW = 210, pageH = 297;
+    const margin = 8;
+    const imgW = pageW - margin*2;
+    const imgH = canvas.height * imgW / canvas.width;
+
+    if(imgH <= pageH - margin*2){
+      pdf.addImage(img, "PNG", margin, margin, imgW, imgH);
+    } else {
+      let sY = 0;
+      const pagePxH = (pageH - margin*2) * canvas.width / imgW;
+      while(sY < canvas.height){
+        const slice = document.createElement("canvas");
+        slice.width = canvas.width;
+        slice.height = Math.min(pagePxH, canvas.height - sY);
+        const ctx = slice.getContext("2d");
+        ctx.drawImage(canvas, 0, sY, canvas.width, slice.height, 0, 0, slice.width, slice.height);
+        pdf.addImage(slice.toDataURL("image/png"), "PNG", margin, margin, imgW, (slice.height * imgW)/slice.width);
+        sY += pagePxH;
+        if(sY < canvas.height) pdf.addPage();
+      }
+    }
+    
+    pdf.save(`plano-de-aula-${Date.now()}.pdf`);
+    toast.success('PDF exportado com sucesso!');
+    
+  } catch (error) {
+    console.error('Erro ao exportar PDF:', error);
+    toast.error('Erro ao exportar PDF. Tente novamente.');
+  } finally {
+    loadingManager.hideButtonLoading(exportBtn);
   }
-  pdf.save(`plano-de-aula-${Date.now()}.pdf`);
 }
 
 function exportToCSV() {
-  let csvContent = "data:text/csv;charset=utf-8,Tipo,Codigo,Titulo,Descricao\r\n";
-  const { workspace } = appState;
+  try {
+    const now = new Date();
+    const timestamp = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+    
+    // Headers mais detalhados
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "# Plano de Aula - MestreLúdico\n";
+    csvContent += `# Exportado em: ${timestamp}\n`;
+    csvContent += `# Tema: ${qs('#prefTheme').value || 'Não informado'}\n`;
+    csvContent += `# Turma: ${qs('#prefClass').value || 'Não informada'}\n`;
+    csvContent += `# Duração: ${qs('#prefTime').value || 'Não informada'}\n`;
+    csvContent += "#\n";
+    csvContent += "Seção,Código BNCC,Título,Descrição,Adaptação TEA,Tags\n";
 
-  for (const section in workspace) {
-    workspace[section].forEach(item => {
-      const row = [
-        section,
-        item.codigo,
-        `"${item.titulo.replace(/"/g, '""')}"`,
-        `"${item.descricao.replace(/"/g, '""')}"`
-      ].join(",");
-      csvContent += row + "\r\n";
+    const { workspace } = appState;
+    let totalItems = 0;
+
+    for (const section in workspace) {
+      workspace[section].forEach(item => {
+        totalItems++;
+        const sectionName = {
+          'objectives': 'Objetivos',
+          'activities': 'Atividades', 
+          'games': 'Jogos',
+          'assessments': 'Avaliações'
+        }[section] || section;
+        
+        const row = [
+          sectionName,
+          item.codigo || '',
+          `"${(item.titulo || '').replace(/"/g, '""')}"`,
+          `"${(item.descricao || '').replace(/"/g, '""')}"`,
+          item.tea ? `"${item.tea.replace(/"/g, '""')}"` : '',
+          item.tags ? `"${item.tags.join(', ')}"` : ''
+        ].join(",");
+        csvContent += row + "\n";
+      });
+    }
+    
+    // Adicionar estatísticas no final
+    csvContent += "\n# Estatísticas\n";
+    csvContent += `# Total de itens: ${totalItems}\n`;
+    csvContent += `# Seções preenchidas: ${Object.values(workspace).filter(arr => arr.length > 0).length}/4\n`;
+    csvContent += `# Modo TEA: ${appState.teaModeActive ? 'Ativo' : 'Inativo'}\n`;
+
+    if (totalItems === 0) {
+      toast.warning('Nenhum item encontrado para exportar. Adicione conteúdo ao workspace primeiro.');
+      return;
+    }
+
+    const encodedUri = encodeURI(csvContent);
+    const link = $.el("a", { 
+      href: encodedUri, 
+      download: `plano-aula-${Date.now()}.csv` 
     });
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`CSV exportado com ${totalItems} itens!`);
+    
+  } catch (error) {
+    console.error('Erro ao exportar CSV:', error);
+    toast.error('Erro ao exportar CSV. Tente novamente.');
   }
-
-  const encodedUri = encodeURI(csvContent);
-  const link = $.el("a", { href: encodedUri, download: "plano_de_aula.csv" });
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 
 function exportStateJSON(){
@@ -829,11 +2046,39 @@ function attachEvents(){
   $.on(qs("#busca"), "input", renderLibrary);
   $.on(qs("#anoSel"), "change", handleFilterChange);
   $.on(qs("#compSel"), "change", handleFilterChange);
+  
+  // Advanced search event handlers
+  const advancedFilters = ['#difficultyFilter', '#durationFilter', '#teaFilter', '#sortBy'];
+  advancedFilters.forEach(selector => {
+    const element = qs(selector);
+    if (element) {
+      $.on(element, 'change', renderLibrary);
+    }
+  });
+  
+  // Advanced search buttons
+  const applyBtn = qs('#applyFilters');
+  if (applyBtn) $.on(applyBtn, 'click', renderLibrary);
+  
+  const clearBtn = qs('#clearFilters');
+  if (clearBtn) $.on(clearBtn, 'click', clearAdvancedFilters);
+  
+  const saveBtn = qs('#saveSearch');
+  if (saveBtn) $.on(saveBtn, 'click', saveCurrentSearch);
 
   $.on(qs("#toggleTeaBtn"), "click", ()=>{
     appState.teaModeActive = !appState.teaModeActive;
     qs("#toggleTeaBtn").setAttribute("aria-pressed", String(appState.teaModeActive));
     updateStats(); saveState();
+  });
+  
+  $.on(qs("#toggleBulkMode"), "click", ()=>{
+    toggleBulkMode();
+    qs("#toggleBulkMode").setAttribute("aria-pressed", String(bulkMode));
+  });
+  
+  $.on(qs("#toggleTheme"), "click", ()=>{
+    themeManager.toggleTheme();
   });
 
   // Tabs
@@ -874,8 +2119,11 @@ function attachEvents(){
         const obj = JSON.parse(reader.result);
         appState = Object.assign({}, appState, obj);
         syncWorkspaceDOM(); renderMyActivities(); updateStats(); saveState();
-        alert("Estado importado com sucesso.");
-      }catch(err){ alert("JSON inválido."); }
+        toast.success("Estado importado com sucesso.");
+      }catch(err){ 
+        console.error("Import error:", err);
+        toast.error("JSON inválido. Verifique o arquivo."); 
+      }
     };
     reader.readAsText(file);
   });
@@ -911,11 +2159,66 @@ function attachEvents(){
     const title = qs("#customTitle").value.trim();
     const tags = qs("#customTags").value.trim();
     const description = qs("#customDescription").value.trim();
-    if(!title){ alert("Dê um título."); return; }
+    if(!title){ 
+      toast.warning("Dê um título para a atividade."); 
+      qs("#customTitle").focus();
+      return; 
+    }
     appState.myActivities.push({ title, tags, description, media: [] });
     qs("#customTitle").value = ""; qs("#customTags").value = ""; qs("#customDescription").value = "";
     renderMyActivities(); saveState();
+    toast.success("Atividade adicionada com sucesso!");
   });
+  
+  // Template system event handlers
+  qsa('.template-card').forEach(card => {
+    $.on(card, 'click', () => {
+      const templateId = card.dataset.template;
+      if (templateId === 'personalizado') {
+        clearWorkspace();
+      } else {
+        applyTemplate(templateId);
+      }
+    });
+  });
+  
+  // Workspace reset handler
+  const resetBtn = qs('#resetWorkspace');
+  if (resetBtn) {
+    $.on(resetBtn, 'click', resetWorkspaceWithConfirmation);
+  }
+  
+  // Quick filter handlers
+  const filterFavBtn = qs('#filterFavorites');
+  const filterRecentBtn = qs('#filterRecent');
+  const filterAllBtn = qs('#filterAll');
+  
+  if (filterFavBtn) {
+    $.on(filterFavBtn, 'click', () => {
+      currentFilters.onlyFavorites = true;
+      currentFilters.onlyRecent = false;
+      renderLibrary();
+      toast.info('Mostrando apenas favoritos');
+    });
+  }
+  
+  if (filterRecentBtn) {
+    $.on(filterRecentBtn, 'click', () => {
+      currentFilters.onlyRecent = true;
+      currentFilters.onlyFavorites = false;
+      renderLibrary();
+      toast.info('Mostrando recentes');
+    });
+  }
+  
+  if (filterAllBtn) {
+    $.on(filterAllBtn, 'click', () => {
+      currentFilters.onlyFavorites = false;
+      currentFilters.onlyRecent = false;
+      renderLibrary();
+      toast.info('Mostrando todas as habilidades');
+    });
+  }
 
   // Shortcuts
   document.addEventListener("keydown", e=>{
@@ -948,14 +2251,106 @@ function attachHotkeys() {
   hotkeys('alt+4, ⌘+4', (e) => { e.preventDefault(); selectTab('tab-chatbot'); });
   hotkeys('alt+5, ⌘+5', (e) => { e.preventDefault(); selectTab('tab-quiz'); });
 
-  // Actions
-  hotkeys('e', (e) => {
+  // Quick actions
+  hotkeys('ctrl+e, ⌘+e', (e) => {
     e.preventDefault();
     const modal = qs("#exportModal");
     if (modal.hasAttribute("open")) {
       modal.removeAttribute("open");
     } else {
       modal.setAttribute("open", "");
+    }
+  });
+
+  // Quick export
+  hotkeys('ctrl+shift+e, ⌘+shift+e', (e) => {
+    e.preventDefault();
+    exportStateJSON();
+  });
+
+  // Toggle TEA mode
+  hotkeys('ctrl+t, ⌘+t', (e) => {
+    e.preventDefault();
+    appState.teaModeActive = !appState.teaModeActive;
+    qs("#toggleTeaBtn").setAttribute("aria-pressed", String(appState.teaModeActive));
+    updateStats(); saveState();
+    toast.info(`Modo TEA ${appState.teaModeActive ? 'ativado' : 'desativado'}`);
+  });
+
+  // Bulk selection
+  hotkeys('ctrl+a, ⌘+a', (e) => {
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+      return; // Let default behavior work for inputs
+    }
+    e.preventDefault();
+    toggleBulkSelectAll();
+  });
+
+  // Delete selected items
+  hotkeys('delete, backspace', (e) => {
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+      return; // Let default behavior work for inputs
+    }
+    if (bulkSelection.size > 0) {
+      e.preventDefault();
+      deleteBulkSelected();
+    }
+  });
+
+  // Search focus
+  hotkeys('ctrl+f, ⌘+f', (e) => {
+    e.preventDefault();
+    qs('#busca').focus();
+  });
+
+  // Clear search
+  hotkeys('escape', (e) => {
+    if (qs('#busca') === document.activeElement) {
+      qs('#busca').value = '';
+      renderLibrary();
+    }
+    // Clear bulk selection
+    if (bulkSelection.size > 0) {
+      clearBulkSelection();
+    }
+  });
+
+  // Help
+  hotkeys('f1, shift+/', (e) => {
+    e.preventDefault();
+    showKeyboardShortcutsHelp();
+  });
+
+  // Quick add to workspace sections
+  hotkeys('ctrl+1, ⌘+1', (e) => {
+    e.preventDefault();
+    if (lastSelectedSkill) {
+      addSkillToSection(lastSelectedSkill, 'objectives');
+      toast.success('Adicionado aos Objetivos');
+    }
+  });
+
+  hotkeys('ctrl+2, ⌘+2', (e) => {
+    e.preventDefault();
+    if (lastSelectedSkill) {
+      addSkillToSection(lastSelectedSkill, 'activities');
+      toast.success('Adicionado às Atividades');
+    }
+  });
+
+  hotkeys('ctrl+3, ⌘+3', (e) => {
+    e.preventDefault();
+    if (lastSelectedSkill) {
+      addSkillToSection(lastSelectedSkill, 'games');
+      toast.success('Adicionado aos Jogos');
+    }
+  });
+
+  hotkeys('ctrl+4, ⌘+4', (e) => {
+    e.preventDefault();
+    if (lastSelectedSkill) {
+      addSkillToSection(lastSelectedSkill, 'assessments');
+      toast.success('Adicionado às Avaliações');
     }
   });
 }
@@ -987,6 +2382,10 @@ function handleRouting(){
   renderQuizEditor();
   // Render the list of saved quizzes
   renderQuizzesList();
+  // Render saved searches
+  renderSavedSearches();
+  // Check for first visit and show onboarding
+  checkFirstVisit();
   // Attach all keyboard shortcuts
   attachHotkeys();
 })();

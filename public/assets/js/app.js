@@ -1757,6 +1757,16 @@ function openSkillDetailModal(skill) {
   // AI Suggestion button
   const aiBtn = $.el("button", { className: "btn btn--sm btn--ghost" });
   aiBtn.innerHTML = `✨ Sugerir Atividades com IA`;
+  
+  // Check API status before showing button
+  checkApiStatus().then(isAvailable => {
+    if (!isAvailable) {
+      aiBtn.innerHTML = `✨ IA (Offline)`;
+      aiBtn.disabled = true;
+      aiBtn.title = "Assistente de IA indisponível no momento";
+    }
+  });
+  
   $.on(aiBtn, "click", () => {
     closeSkillDetailModal(); // Close this modal before opening the other
     handleAiSuggestion(skill);
@@ -1771,11 +1781,12 @@ function closeSkillDetailModal() {
 }
 
 // ---------- AI Assistant ----------
-function renderAiSuggestions(suggestions) {
-  const container = qs("#aiSuggestionsList");
-  container.innerHTML = "";
+function renderAiSuggestions(suggestions, container = null) {
+  const targetContainer = container || qs("#aiSuggestionsList");
+  targetContainer.innerHTML = "";
+  
   if (!suggestions || suggestions.length === 0) {
-    container.innerHTML = `<p>Não foi possível gerar sugestões no momento. Tente novamente.</p>`;
+    targetContainer.innerHTML = `<p>Não foi possível gerar sugestões no momento. Tente novamente.</p>`;
     return;
   }
 
@@ -1789,7 +1800,74 @@ function renderAiSuggestions(suggestions) {
     item.append(title, desc);
     list.appendChild(item);
   });
-  container.appendChild(list);
+  targetContainer.appendChild(list);
+}
+
+// Fallback suggestions system
+function generateFallbackSuggestions(skill) {
+  const baseActivities = {
+    "Leitura": [
+      { title: "Leitura Compartilhada", description: "Ler o texto em voz alta e discutir o conteúdo com os alunos, promovendo compreensão e interação." },
+      { title: "Questões de Compreensão", description: "Criar perguntas sobre o texto para verificar o entendimento e estimular o pensamento crítico." },
+      { title: "Teatro de Leitura", description: "Dramatizar partes do texto para tornar a leitura mais envolvente e memorial." }
+    ],
+    "Escrita": [
+      { title: "Produção Textual Guiada", description: "Orientar os alunos na criação de textos com estrutura e propósito definidos." },
+      { title: "Revisão Colaborativa", description: "Trabalhar em duplas para revisar e melhorar os textos produzidos." },
+      { title: "Diário de Aprendizagem", description: "Manter um registro diário das descobertas e aprendizados." }
+    ],
+    "Números": [
+      { title: "Jogos Numéricos", description: "Utilizar jogos e brincadeiras para trabalhar conceitos matemáticos de forma lúdica." },
+      { title: "Material Concreto", description: "Usar objetos manipuláveis para visualizar e compreender conceitos abstratos." },
+      { title: "Problemas do Cotidiano", description: "Criar situações problemáticas baseadas na realidade dos alunos." }
+    ],
+    "Operações": [
+      { title: "Cálculo Mental", description: "Desenvolver estratégias de cálculo mental através de exercícios progressivos." },
+      { title: "Algoritmos Alternativos", description: "Apresentar diferentes formas de resolver operações matemáticas." },
+      { title: "Jogos de Estratégia", description: "Usar jogos que envolvem raciocínio lógico e cálculos." }
+    ],
+    "Geometria": [
+      { title: "Exploração do Espaço", description: "Atividades de movimentação e observação do ambiente para compreender formas geométricas." },
+      { title: "Construção com Formas", description: "Usar blocos e materiais para construir e identificar formas geométricas." },
+      { title: "Arte Geométrica", description: "Criar desenhos e pinturas utilizando formas geométricas." }
+    ]
+  };
+  
+  // Try to match skill theme to suggestions
+  const theme = skill.tema || "";
+  let suggestions = [];
+  
+  for (const key in baseActivities) {
+    if (theme.toLowerCase().includes(key.toLowerCase())) {
+      suggestions = baseActivities[key];
+      break;
+    }
+  }
+  
+  // Fallback to generic educational activities
+  if (suggestions.length === 0) {
+    suggestions = [
+      { title: "Atividade Prática", description: "Desenvolver uma atividade hands-on relacionada ao tema da habilidade." },
+      { title: "Discussão em Grupo", description: "Promover debate e troca de ideias sobre o conteúdo abordado." },
+      { title: "Projeto Colaborativo", description: "Criar um projeto em equipe que aplique os conceitos aprendidos." }
+    ];
+  }
+  
+  return suggestions;
+}
+
+// API Status Check
+async function checkApiStatus() {
+  try {
+    const response = await fetch('/api/suggest-activities', {
+      method: 'HEAD', // Just check if endpoint exists
+      cache: 'no-cache'
+    });
+    return response.status !== 404;
+  } catch (error) {
+    console.warn('API check failed:', error);
+    return false;
+  }
 }
 
 async function handleAiSuggestion(skill) {
@@ -1820,6 +1898,8 @@ async function handleAiSuggestion(skill) {
     });
 
     if (!response.ok) {
+      // Log detailed error for debugging
+      console.error(`API Error: ${response.status} - ${response.statusText}`);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -1828,14 +1908,24 @@ async function handleAiSuggestion(skill) {
 
   } catch (error) {
     console.error("Failed to get AI suggestions:", error);
+    
+    // Show fallback suggestions based on skill theme
+    const fallbackSuggestions = generateFallbackSuggestions(skill);
+    
     listEl.innerHTML = `
-      <div style="color: var(--danger); text-align: center; padding: 20px;">
-        <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
-        <p>Não foi possível conectar com o assistente de IA.</p>
-        <p style="font-size: 12px; color: var(--muted);">Verifique sua conexão ou tente novamente mais tarde.</p>
-        <button class="btn btn--sm" onclick="handleAiSuggestion(${JSON.stringify(skill).replace(/"/g, '&quot;')})">Tentar Novamente</button>
+      <div style="background: var(--warning); color: white; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+        <div style="font-size: 18px; margin-bottom: 8px;">⚠️ IA Indisponível</div>
+        <p style="margin: 0; font-size: 14px;">Não foi possível conectar com o assistente de IA. Aqui estão algumas sugestões baseadas na habilidade:</p>
+      </div>
+      <div id="fallbackSuggestions"></div>
+      <div style="text-align: center; margin-top: 16px;">
+        <button class="btn btn--sm" onclick="handleAiSuggestion(${JSON.stringify(skill).replace(/"/g, '&quot;')})">🔄 Tentar Novamente</button>
       </div>
     `;
+    
+    // Render fallback suggestions
+    const fallbackContainer = listEl.querySelector('#fallbackSuggestions');
+    renderAiSuggestions(fallbackSuggestions, fallbackContainer);
   }
 }
 

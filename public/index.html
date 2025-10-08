@@ -1,5 +1,5 @@
-  <!DOCTYPE html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR" class="theme-auto">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -8,15 +8,20 @@
 
   <!-- PWA & SEO -->
   <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#2D6AE3">
+  <meta name="theme-color" content="#3B82F6">
   <link rel="icon" href="/icons/favicon.ico" sizes="any">
   <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2D6AE3">
+  <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#3B82F6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+  <!-- Preconnect to CDNs -->
+  <link rel="preconnect" href="https://rsms.me" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
   <!-- Styles & Libs -->
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
   <link rel="stylesheet" href="/assets/css/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hotkeys-js/dist/hotkeys.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
@@ -27,163 +32,185 @@
   <div class="container">
     <header class="header" aria-label="Cabeçalho do aplicativo">
       <div class="brand">
-        <img src="/brand/logo.svg" alt="MestreLúdico Logo" style="height: 40px;">
+        <img src="/brand/logo.svg" alt="MestreLúdico Logo" class="brand__logo">
+        <h1 class="brand__title">MestreLúdico</h1>
       </div>
       <div class="toolbar" role="toolbar" aria-label="Ferramentas rápidas">
-        <button class="btn btn--ghost focus-ring" id="toggleTheme" data-tooltip="Alternar tema claro/escuro" data-tooltip-position="bottom">🌙 Tema</button>
-        <button class="btn btn--ghost focus-ring" id="toggleBulkMode" aria-pressed="false" data-tooltip="Ativar/desativar modo de seleção múltipla (Ctrl+A)" data-tooltip-position="bottom">🗐️ Seleção</button>
-        <button class="btn btn--ghost focus-ring" id="toggleTeaBtn" aria-pressed="false" data-tooltip="Alternar modo de adaptação para TEA (Ctrl+T)" data-tooltip-position="bottom">🧩 Modo TEA</button>
-        <button class="btn focus-ring" id="openExport" data-tooltip="Abrir opções de exportação (Ctrl+E)" data-tooltip-position="bottom">⬇️ Exportar</button>
-        <button class="btn btn--ghost focus-ring" id="exportJSON" data-tooltip="Exportação rápida em JSON (Ctrl+Shift+E)" data-tooltip-position="bottom">💾 Exportar JSON</button>
-        <label class="btn btn--ghost focus-ring" data-tooltip="Importar configurações salvas" data-tooltip-position="bottom">
-          📥 Importar JSON
-          <input type="file" id="importJSON" accept="application/json" class="sr-only">
-        </label>
+        <div class="toolbar__group">
+          <button class="btn btn--icon" id="toggleTheme" data-tooltip="Alternar tema" data-tooltip-position="bottom" aria-label="Alternar tema">
+            <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0 0 20 10 10 0 0 0 0-20m0 18v-2.1a5 5 0 0 1 0-11.8V4a8 8 0 0 1 0 16"/></svg>
+          </button>
+          <button class="btn btn--icon" id="toggleTeaBtn" aria-pressed="false" data-tooltip="Modo de adaptação TEA" data-tooltip-position="bottom" aria-label="Ativar modo TEA">
+            <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19.1 8.32a3.8 3.8 0 0 1-3.8-3.8c0-.6.15-1.18.42-1.71a1 1 0 0 0-1.57-1.1A9.82 9.82 0 0 0 12 2C6.48 2 2 6.48 2 12s4.48 10 10 10a9.82 9.82 0 0 0 7.14-3.14a1 1 0 0 0-1.1-1.57c-.53.27-1.11.41-1.72.41a3.8 3.8 0 0 1-3.8-3.8c0-1.56.94-2.9 2.24-3.48A4.1 4.1 0 0 1 19.1 8.32m-6.86 1.12a1.25 1.25 0 0 0-1.24-1.24c-.69 0-1.25.56-1.25 1.24a1.25 1.25 0 0 0 1.25 1.25c.68 0 1.24-.56 1.24-1.25m-3.75 5a1.25 1.25 0 0 0-1.25-1.25c-.69 0-1.25.56-1.25 1.25a1.25 1.25 0 0 0 1.25 1.25c.69 0 1.25-.56 1.25-1.25m6.25-2.5a1.25 1.25 0 0 0-1.25-1.25c-.69 0-1.25.56-1.25 1.25a1.25 1.25 0 0 0 1.25 1.25c.69 0 1.25-.56 1.25-1.25m3.75-2.5a1.25 1.25 0 0 0-1.24-1.25c-.69 0-1.25.56-1.25 1.25a1.25 1.25 0 0 0 1.25 1.25c.68 0 1.24-.56 1.24-1.25Z"/></svg>
+          </button>
+           <button class="btn btn--icon" id="toggleBulkMode" aria-pressed="false" data-tooltip="Ativar/desativar modo de seleção múltipla (Ctrl+A)" data-tooltip-position="bottom">
+            <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 2h16v2H4V2zm0 4h16v2H4V6zm0 4h16v2H4v-2zm0 4h16v2H4v-2zm0 4h16v2H4v-2z"/></svg>
+          </button>
+        </div>
+        <div class="toolbar__group">
+          <label class="btn btn--secondary" data-tooltip="Importar plano de aula" data-tooltip-position="bottom">
+            <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9.75 16.5h4.5v-6h3l-5.25-5.25L6.75 10.5h3zM6 18h12v2H6z"/></svg>
+            Importar
+            <input type="file" id="importJSON" accept="application/json" class="sr-only">
+          </label>
+          <button class="btn" id="openExport" data-tooltip="Exportar plano de aula" data-tooltip-position="bottom">
+            <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M17.25 10.5h-3v-6H9.75v6h-3L12 15.75zM6 18h12v2H6z"/></svg>
+            Exportar
+          </button>
+          <button class="btn btn--secondary" id="exportJSON" data-tooltip="Exportação rápida em JSON (Ctrl+Shift+E)" data-tooltip-position="bottom">
+            <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10 10-4.48 10-10zm-10 8c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z"/></svg>
+            JSON
+          </button>
+        </div>
       </div>
     </header>
 
-    <nav class="tablist" role="tablist" aria-label="Seções principais">
-      <button class="tab focus-ring" role="tab" aria-selected="true" aria-controls="tab-library" id="tab-library-btn" data-tooltip="Navegar pelas habilidades da BNCC (Alt+1)" data-tooltip-position="bottom">Biblioteca BNCC</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-workspace" id="tab-workspace-btn" data-tooltip="Área de construção do plano de aula (Alt+2)" data-tooltip-position="bottom">Workspace</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-my" id="tab-my-btn" data-tooltip="Gerenciar suas atividades personalizadas (Alt+3)" data-tooltip-position="bottom">Minhas Atividades</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-chatbot" id="tab-chatbot-btn" data-tooltip="Criar histórias interativas para as aulas (Alt+4)" data-tooltip-position="bottom">Gerador de Histórias</button>
-      <button class="tab focus-ring" role="tab" aria-selected="false" aria-controls="tab-quiz" id="tab-quiz-btn" data-tooltip="Criar quizzes educativos (Alt+5)" data-tooltip-position="bottom">Criador de Jogos</button>
-    </nav>
+    <aside class="sidebar">
+      <nav class="tab-navigation" role="tablist" aria-label="Seções principais">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="tab-library" id="tab-library-btn">
+          <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+          <span>Biblioteca</span>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-workspace" id="tab-workspace-btn">
+           <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14.06 9.94L12 9l-2.06.94L10.5 12l-.56 2.06L12 13l2.06 1.06L13.5 12zM20 6h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2m-5 0H9V4h6v2z"/></svg>
+          <span>Workspace</span>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-my" id="tab-my-btn">
+          <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6m0 14c-2.03 0-4.43-.82-6.14-2.88a9.96 9.96 0 0 1 12.28 0C16.43 19.18 14.03 20 12 20"/></svg>
+          <span>Minhas Atividades</span>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-chatbot" id="tab-chatbot-btn">
+          <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M18 13v-2h-2v2zm-4-4v-2h-2v2zm-2 4h-2v-2h2zm10-2c0 4.42-3.58 8-8 8s-8-3.58-8-8s3.58-8 8-8c1.58 0 3.04.46 4.28 1.25l1.45-1.45A10.02 10.02 0 0 0 12 3C6.48 3 2 7.48 2 13s4.48 10 10 10s10-4.48 10-10z"/></svg>
+          <span>Gerador de Histórias</span>
+        </button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="tab-quiz" id="tab-quiz-btn">
+          <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m-1-13h2v2h-2zm0 4h2v6h-2z"/></svg>
+          <span>Criador de Jogos</span>
+        </button>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <section class="content-panel" id="tab-library" role="tabpanel" aria-labelledby="tab-library-btn">
+        <div class="panel-header">
+          <h2 class="panel-title">Biblioteca BNCC</h2>
+          <div class="search-bar">
+            <input id="busca" class="input" placeholder="Buscar por código, tema ou palavra-chave...">
+            <button class="btn btn--icon" aria-label="Buscar"><svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5A6.5 6.5 0 0 0 9.5 3A6.5 6.5 0 0 0 3 9.5A6.5 6.5 0 0 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zM9.5 14A4.5 4.5 0 0 1 5 9.5A4.5 4.5 0 0 1 9.5 5A4.5 4.5 0 0 1 14 9.5A4.5 4.5 0 0 1 9.5 14"/></svg></button>
+          </div>
+        </div>
 
-    <section id="tab-library" role="tabpanel" aria-labelledby="tab-library-btn">
-      <div class="card">
-        <h3 class="section-title">Filtrar habilidades</h3>
-        <div class="grid grid-3">
-          <div>
-            <label for="anoSel">Ano/Série</label>
-            <select id="anoSel" class="select focus-ring">
+        <div class="filters">
+          <div class="filter-group">
+            <label for="anoSel" class="sr-only">Ano/Série</label>
+            <select id="anoSel" class="select">
               <option>2º ano</option>
               <option>5º ano</option>
             </select>
-          </div>
-          <div>
-            <label for="compSel">Componente</label>
-            <select id="compSel" class="select focus-ring">
+            <label for="compSel" class="sr-only">Componente</label>
+            <select id="compSel" class="select">
               <option>Língua Portuguesa</option>
               <option>Matemática</option>
             </select>
           </div>
-          <div>
-            <label for="busca">Busca</label>
-            <input id="busca" class="input focus-ring" placeholder="código, tema ou palavra-chave">
-          </div>
+          <details class="advanced-search-details">
+            <summary class="btn btn--secondary btn--sm">
+              <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M7 11h10v2H7zm-2 4h14v2H5zm4-8h6v2H9z"/></svg>
+              Filtros Avançados
+            </summary>
+            <div class="advanced-filters-body">
+              <div class="grid grid-4">
+                <div>
+                  <label for="difficultyFilter">Dificuldade</label>
+                  <select id="difficultyFilter" class="select">
+                    <option value="">Todas</option>
+                    <option value="facil">Fácil</option>
+                    <option value="medio">Médio</option>
+                    <option value="dificil">Difícil</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="durationFilter">Duração (min)</label>
+                  <select id="durationFilter" class="select">
+                    <option value="">Qualquer</option>
+                    <option value="0-30">0-30 min</option>
+                    <option value="30-60">30-60 min</option>
+                    <option value="60+">60+ min</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="teaFilter">Adaptado para TEA</label>
+                  <select id="teaFilter" class="select">
+                    <option value="">Ambos</option>
+                    <option value="yes">Sim</option>
+                    <option value="no">Não</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="sortBy">Ordenar por</label>
+                  <select id="sortBy" class="select">
+                    <option value="codigo">Código</option>
+                    <option value="tema">Tema</option>
+                    <option value="relevancia">Relevância</option>
+                  </select>
+                </div>
+              </div>
+              <div class="search-actions">
+                <button class="btn btn--sm" id="applyFilters">Aplicar</button>
+                <button class="btn btn--sm btn--secondary" id="clearFilters">Limpar</button>
+                <button class="btn btn--sm btn--secondary" id="saveSearch">Salvar Busca</button>
+              </div>
+            </div>
+          </details>
         </div>
-        
-        <!-- Advanced Search Filters -->
-        <details class="advanced-search" id="advancedSearch">
-          <summary class="search-toggle">Filtros Avançados</summary>
-          <div class="advanced-filters">
-            <div class="grid grid-4">
-              <div>
-                <label for="difficultyFilter">Dificuldade</label>
-                <select id="difficultyFilter" class="select focus-ring">
-                  <option value="">Todas</option>
-                  <option value="facil">Fácil</option>
-                  <option value="medio">Médio</option>
-                  <option value="dificil">Difícil</option>
-                </select>
-              </div>
-              <div>
-                <label for="durationFilter">Duração (min)</label>
-                <select id="durationFilter" class="select focus-ring">
-                  <option value="">Qualquer</option>
-                  <option value="0-30">0-30 min</option>
-                  <option value="30-60">30-60 min</option>
-                  <option value="60+">60+ min</option>
-                </select>
-              </div>
-              <div>
-                <label for="teaFilter">Adaptado para TEA</label>
-                <select id="teaFilter" class="select focus-ring">
-                  <option value="">Ambos</option>
-                  <option value="yes">Sim</option>
-                  <option value="no">Não</option>
-                </select>
-              </div>
-              <div>
-                <label for="sortBy">Ordenar por</label>
-                <select id="sortBy" class="select focus-ring">
-                  <option value="codigo">Código</option>
-                  <option value="tema">Tema</option>
-                  <option value="relevancia">Relevância</option>
-                </select>
-              </div>
-            </div>
-            <div class="search-actions">
-              <button class="btn btn--sm" id="applyFilters">Aplicar Filtros</button>
-              <button class="btn btn--sm btn--ghost" id="clearFilters">Limpar Filtros</button>
-              <button class="btn btn--sm btn--ghost" id="saveSearch">Salvar Busca</button>
-            </div>
-          </div>
-        </details>
-        
-        <!-- Saved Searches -->
-        <div class="saved-searches" id="savedSearches" style="margin-top: 12px;"></div>
-        
-        <!-- Quick Filters -->
+
         <div class="quick-filters" style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn--sm btn--ghost" id="filterFavorites" data-tooltip="Mostrar apenas favoritos">❤️ Favoritos</button>
-          <button class="btn btn--sm btn--ghost" id="filterRecent" data-tooltip="Mostrar recentemente usados">🕑 Recentes</button>
-          <button class="btn btn--sm btn--ghost" id="filterAll" data-tooltip="Mostrar todas as habilidades">📝 Todas</button>
+          <button class="btn btn--sm btn--secondary" id="filterFavorites" data-tooltip="Mostrar apenas favoritos">❤️ Favoritos</button>
+          <button class="btn btn--sm btn--secondary" id="filterRecent" data-tooltip="Mostrar recentemente usados">🕑 Recentes</button>
+          <button class="btn btn--sm btn--secondary" id="filterAll" data-tooltip="Mostrar todas as habilidades">📝 Todas</button>
         </div>
-      </div>
 
-      <div class="library" id="libraryList" aria-live="polite" aria-busy="false"></div>
-      <p class="footer">Dica: arraste cards para o <strong>Workspace</strong>, ou use os botões "Adicionar". 
-      Atalhos: <span class="kbd">Ctrl+F</span> busca, <span class="kbd">Ctrl+A</span> selecionar tudo, <span class="kbd">F1</span> ajuda completa.</p>
-    </section>
+        <div class="quick-filters" id="savedSearches"></div>
 
-    <section id="tab-workspace" role="tabpanel" aria-labelledby="tab-workspace-btn" hidden>
-      <!-- Quick Templates Section -->
-      <div class="card template-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h3 class="section-title" style="margin: 0;">Modelos de Plano de Aula</h3>
-          <button class="btn btn--danger btn--sm" id="resetWorkspace" data-tooltip="Limpar todo o workspace" data-tooltip-position="left">
-            🗑️ Limpar Tudo
+        <div class="library" id="libraryList" aria-live="polite" aria-busy="false"></div>
+        <p class="footer-hint">Dica: arraste cards para o <strong>Workspace</strong>, ou use os botões "Adicionar".</p>
+      </section>
+
+      <section class="content-panel" id="tab-workspace" role="tabpanel" aria-labelledby="tab-workspace-btn" hidden>
+        <div class="panel-header">
+          <h2 class="panel-title">Workspace</h2>
+          <button class="btn btn--danger btn--sm" id="resetWorkspace">
+            <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            Limpar Tudo
           </button>
         </div>
-        <div class="template-grid">
-          <button class="template-card" data-template="matematica-basica">
-            <div class="template-icon">📊</div>
-            <div class="template-title">Matemática Básica</div>
-            <div class="template-desc">Operações fundamentais e resolução de problemas</div>
-          </button>
-          <button class="template-card" data-template="leitura-compreensao">
-            <div class="template-icon">📚</div>
-            <div class="template-title">Leitura e Compreensão</div>
-            <div class="template-desc">Desenvolvimento de habilidades leitoras</div>
-          </button>
-          <button class="template-card" data-template="tea-adaptado">
-            <div class="template-icon">🧩</div>
-            <div class="template-title">Plano TEA</div>
-            <div class="template-desc">Estruturado para alunos com TEA</div>
-          </button>
-          <button class="template-card" data-template="atividade-ludica">
-            <div class="template-icon">🎲</div>
-            <div class="template-title">Atividade Lúdica</div>
-            <div class="template-desc">Aprendizado através de jogos</div>
-          </button>
-          <button class="template-card" data-template="avaliacao-formativa">
-            <div class="template-icon">📝</div>
-            <div class="template-title">Avaliação Formativa</div>
-            <div class="template-desc">Acompanhamento contínuo do aprendizado</div>
-          </button>
-          <button class="template-card" data-template="personalizado">
-            <div class="template-icon">⚙️</div>
-            <div class="template-title">Criar Personalizado</div>
-            <div class="template-desc">Começar do zero</div>
-          </button>
+
+        <div class="template-section card">
+            <h3 class="section-title">Modelos de Plano de Aula</h3>
+            <div class="template-grid">
+              <button class="template-card" data-template="matematica-basica" aria-label="Aplicar modelo de Matemática Básica">
+                <div class="template-icon">📊</div>
+                <div class="template-title">Matemática Básica</div>
+                <div class="template-desc">Operações fundamentais e resolução de problemas</div>
+              </button>
+              <button class="template-card" data-template="leitura-compreensao" aria-label="Aplicar modelo de Leitura e Compreensão">
+                <div class="template-icon">📚</div>
+                <div class="template-title">Leitura e Compreensão</div>
+                <div class="template-desc">Desenvolvimento de habilidades leitoras</div>
+              </button>
+              <button class="template-card" data-template="tea-adaptado" aria-label="Aplicar modelo de Plano TEA">
+                <div class="template-icon">🧩</div>
+                <div class="template-title">Plano TEA</div>
+                <div class="template-desc">Estruturado para alunos com TEA</div>
+              </button>
+              <button class="template-card" data-template="personalizado" aria-label="Começar um plano do zero">
+                <div class="template-icon">⚙️</div>
+                <div class="template-title">Criar Personalizado</div>
+                <div class="template-desc">Começar do zero</div>
+              </button>
+            </div>
         </div>
-      </div>
       
-      <div class="card canvas">
-        <h3 class="section-title">Plano de Aula — Workspace</h3>
-        <div class="dropzones" aria-label="Zonas de construção do plano">
+        <div class="dropzones">
           <div class="dropzone" id="objectives-zone" data-section="objectives">
             <h4>🎯 Objetivos</h4>
             <div class="zone-list"></div>
@@ -201,156 +228,107 @@
             <div class="zone-list"></div>
           </div>
         </div>
-        <hr class="sep">
-        <div class="grid grid-2">
-          <div class="card">
+        <div class="workspace-prefs card">
+          <div>
             <h4 class="section-title">Preferências do Plano</h4>
-            <div class="grid">
-              <label>Tema da Aula <input id="prefTheme" class="input focus-ring" placeholder="ex.: Frações no cotidiano"></label>
-              <label>Turma <input id="prefClass" class="input focus-ring" placeholder="ex.: 5º ano A"></label>
-              <label>Duração <input id="prefTime" class="input focus-ring" placeholder="ex.: 50 minutos"></label>
+            <div class="grid grid-3">
+              <label>Tema da Aula <input id="prefTheme" class="input" placeholder="ex.: Frações"></label>
+              <label>Turma <input id="prefClass" class="input" placeholder="ex.: 5º ano A"></label>
+              <label>Duração <input id="prefTime" class="input" placeholder="ex.: 50 min"></label>
             </div>
           </div>
-          <div class="card">
+          <div>
             <h4 class="section-title">Estatísticas</h4>
             <p>Habilidades selecionadas: <strong id="statSkills">0</strong></p>
             <p>Itens no plano: <strong id="statItems">0</strong></p>
             <p>Modo TEA: <strong id="statTea">desligado</strong></p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="tab-my" role="tabpanel" aria-labelledby="tab-my-btn" hidden>
-      <div class="card">
-        <h3 class="section-title">Minhas Atividades</h3>
-      <div class="custom-activity-adder">
-        <div class="grid grid-2" style="margin-bottom: 8px;">
-          <input id="customTitle" class="input focus-ring" placeholder="Título">
-          <input id="customTags" class="input focus-ring" placeholder="Tags (opcional)">
+      <section class="content-panel" id="tab-my" role="tabpanel" aria-labelledby="tab-my-btn" hidden>
+        <div class="panel-header">
+          <h2 class="panel-title">Minhas Atividades</h2>
         </div>
-        <textarea id="customDescription" class="input focus-ring" placeholder="Descrição..." style="width:100%; box-sizing: border-box; margin-bottom: 8px;"></textarea>
-          <button id="addCustom" class="btn">+ Adicionar</button>
-        </div>
-      </div>
-      <div class="card" id="myActivitiesList"></div>
-    </section>
-
-    <section id="tab-chatbot" role="tabpanel" aria-labelledby="tab-chatbot-btn" hidden>
-      <div class="card">
-        <h3 class="section-title">Gerador de Histórias</h3>
-        <div class="chat-container">
-          <div class="chat-messages" id="chatMessages"></div>
-          <div class="chat-input-area">
-            <input type="text" id="chatInput" class="input focus-ring" placeholder="Digite sua resposta...">
-            <button id="chatSendBtn" class="btn">Enviar</button>
+        <div class="card">
+          <div class="custom-activity-adder">
+            <div class="grid grid-2">
+              <input id="customTitle" class="input" placeholder="Título da atividade">
+              <input id="customTags" class="input" placeholder="Tags (ex: matemática, jogo)">
+            </div>
+            <textarea id="customDescription" class="input" placeholder="Descrição da atividade..."></textarea>
+            <button id="addCustom" class="btn">
+              <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+              Adicionar Atividade
+            </button>
           </div>
         </div>
-      </div>
-    </section>
+        <div class="card" id="myActivitiesList" style="margin-top: 1rem;"></div>
+      </section>
 
-    <section id="tab-quiz" role="tabpanel" aria-labelledby="tab-quiz-btn" hidden>
-      <div class="card">
-        <h3 class="section-title">Criador de Quizzes</h3>
-        <div id="quiz-editor">
-          <label for="quizTitle" style="display: block; margin-bottom: 8px;">Título do Quiz</label>
-          <input type="text" id="quizTitle" class="input focus-ring" placeholder="Ex: Capitais do Brasil" style="width: 100%;">
-          <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Perguntas</h4>
-          <div id="questions-container"></div>
-          <button id="addQuestionBtn" class="btn btn--ghost" style="margin-top: 1rem;">+ Adicionar Pergunta</button>
-          <hr class="sep">
-          <button id="saveQuizBtn" class="btn">Salvar Quiz</button>
+      <section class="content-panel" id="tab-chatbot" role="tabpanel" aria-labelledby="tab-chatbot-btn" hidden>
+        <div class="panel-header"><h2 class="panel-title">Gerador de Histórias</h2></div>
+        <div class="chat-container card">
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input-area">
+            <input type="text" id="chatInput" class="input" placeholder="Digite sua resposta...">
+            <button id="chatSendBtn" class="btn btn--icon" aria-label="Enviar"><svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+          </div>
         </div>
-      </div>
-      <div class="card" style="margin-top: 1rem;">
-        <h3 class="section-title">Meus Quizzes Salvos</h3>
-        <div id="quiz-list"></div>
-      </div>
-    </section>
+      </section>
 
-    <dialog class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
-      <div class="dialog">
-        <h3 id="exportTitle" class="section-title">Exportar</h3>
-        <p>Escolha o formato:</p>
-        <div class="grid grid-3">
-          <button class="btn" data-export="pdf">📄 PDF (Workspace)</button>
-          <button class="btn btn--ghost" data-export="csv">📊 CSV (Planilha)</button>
-          <button class="btn btn--ghost" data-export="json">🧰 JSON (Completo)</button>
+      <section class="content-panel" id="tab-quiz" role="tabpanel" aria-labelledby="tab-quiz-btn" hidden>
+        <div class="panel-header"><h2 class="panel-title">Criador de Quizzes</h2></div>
+        <div class="card">
+          <div id="quiz-editor">
+            <label for="quizTitle">Título do Quiz</label>
+            <input type="text" id="quizTitle" class="input" placeholder="Ex: Capitais do Brasil">
+            <h4>Perguntas</h4>
+            <div id="questions-container"></div>
+            <button id="addQuestionBtn" class="btn btn--secondary" style="margin-top: 1rem;">+ Adicionar Pergunta</button>
+            <hr class="sep">
+            <button id="saveQuizBtn" class="btn">Salvar Quiz</button>
+          </div>
         </div>
-        <p class="footer">O PDF captura a área do Workspace. Para melhor qualidade, expanda os itens antes de exportar.</p>
-        <div style="text-align:right;margin-top:10px">
-          <button class="btn btn--ghost" id="closeExport">Fechar</button>
+        <div class="card" style="margin-top: 1rem;">
+          <h3 class="section-title">Meus Quizzes Salvos</h3>
+          <div id="quiz-list"></div>
         </div>
-      </div>
-    </dialog>
-
-    <footer class="footer">Feito com ☕ e criticidade pedagógica.</footer>
+      </section>
+    </main>
   </div>
 
-  <div id="quizPlayerModal" class="modal">
-    <div class="dialog" style="max-width: 600px;">
-      <div id="playerContent">
-        <h3 id="playerQuizTitle" class="section-title">Carregando Quiz...</h3>
-        <div id="playerQuestionContainer">
-          <p id="playerQuestionText" style="font-size: 1.1rem; margin-bottom: 1.5rem;"></p>
-          <div id="playerAnswersContainer" class="answers-container"></div>
-        </div>
-        <div id="playerFeedbackContainer" style="margin-top: 1.5rem; text-align: right;">
-          <button id="playerNextBtn" class="btn" hidden>Próxima Pergunta</button>
-        </div>
+  <dialog class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+    <div class="dialog">
+      <h3 id="exportTitle" class="section-title">Exportar Plano</h3>
+      <p>Escolha o formato de exportação:</p>
+      <div class="grid grid-3">
+        <button class="btn" data-export="pdf">📄 PDF</button>
+        <button class="btn btn--secondary" data-export="csv">📊 CSV</button>
+        <button class="btn btn--secondary" data-export="json">🧰 JSON</button>
       </div>
-      <div id="playerSummaryContainer" hidden>
-        <h4 class="section-title">Fim do Quiz!</h4>
-        <p>Sua pontuação: <strong id="playerFinalScore"></strong></p>
-        <button id="playerCloseBtn" class="btn">Fechar</button>
+      <div class="dialog-actions">
+        <button class="btn btn--secondary" id="closeExport">Fechar</button>
       </div>
     </div>
-  </div>
+  </dialog>
+
+  <div id="toast-container" class="toast-container"></div>
+  
+  <button id="backToTop" class="back-to-top" data-tooltip="Voltar ao topo" data-tooltip-position="left" aria-label="Voltar ao topo da página">
+    <svg class="icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>
+  </button>
+
+  <!-- Modals that can be injected into -->
+  <div id="skillDetailModal" class="modal"><div class="dialog"></div></div>
+  <div id="aiSuggestionModal" class="modal"><div class="dialog"></div></div>
+  <div id="quizPlayerModal" class="modal"><div class="dialog"></div></div>
 
   <script type="module" src="/assets/js/app.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js");
+      window.addEventListener('load', () => navigator.serviceWorker.register("/service-worker.js"));
     }
   </script>
-
-  <div id="skillDetailModal" class="modal">
-    <div class="dialog">
-      <h3 id="skillDetailTitle" class="section-title"></h3>
-      <p id="skillDetailDescription"></p>
-      <hr class="sep">
-      <h4>Ações para esta Habilidade:</h4>
-      <div id="skillDetailActions" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
-        <!-- Action buttons will be injected by JS -->
-      </div>
-      <div style="text-align: right; margin-top: 1.5rem;">
-        <button id="skillDetailCloseBtn" class="btn btn--ghost">Fechar</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="aiSuggestionModal" class="modal">
-    <div class="dialog" style="max-width: 650px;">
-      <h3 class="section-title">Sugestões de Atividades com IA</h3>
-      <div id="aiSuggestionContent">
-        <p><strong>Habilidade da BNCC:</strong> <span id="aiSkillDescription"></span></p>
-        <hr class="sep">
-        <div id="aiSuggestionsList">
-          <p>Carregando sugestões...</p>
-        </div>
-      </div>
-      <div style="text-align: right; margin-top: 1.5rem;">
-        <button id="aiCloseBtn" class="btn btn--ghost">Fechar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Notifications Container -->
-  <div id="toast-container" class="toast-container"></div>
-  
-  <!-- Back to Top Button -->
-  <button id="backToTop" class="back-to-top" data-tooltip="Voltar ao topo" data-tooltip-position="left" aria-label="Voltar ao topo da página">
-    ↑
-  </button>
 </body>
 </html>

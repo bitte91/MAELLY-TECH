@@ -2452,10 +2452,42 @@ function handleRouting(){
   }
 }
 
+// ---------- PWA Install ----------
+function setupPWAInstall() {
+  let deferredPrompt;
+  const installBtn = qs("#installPWA");
+
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.hidden = false;
+  });
+
+  installBtn.addEventListener("click", async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        console.log("PWA installation accepted");
+      } else {
+        console.log("PWA installation dismissed");
+      }
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    }
+  });
+
+  window.addEventListener("appinstalled", () => {
+    console.log("PWA was installed");
+    installBtn.hidden = true;
+  });
+}
+
 // ---------- Init ----------
 (async function init(){
   await loadBNCC();
   attachEvents();
+  setupPWAInstall();
   enableDnD();
   renderLibrary();
   syncWorkspaceDOM();
